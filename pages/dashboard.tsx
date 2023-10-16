@@ -12,7 +12,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { titleData } from '../types/localStorage'
 import { handleItemClick, handleContextMenu } from '../app/ContextHandler';
 import Modal from '../components/modal';
-import ContentModal from '../components/ContentModal';
+import ContentModal from '../components/organisms/ContentModal';
 
 
 
