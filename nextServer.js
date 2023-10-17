@@ -28,3 +28,10 @@ app.prepare().then(() => {
       console.log(`> HTTPS: Ready on https://localhost:${PORT}`);
     });
 });
+
+// try {
+//   fs.symlinkSync('./public/render', '../../../render/', 'dir');
+//   console.log('심볼릭 링크가 성공적으로 생성되었습니다.');
+// } catch (err) {
+//   console.error('심볼릭 링크 생성 중 오류 발생:', err);
+// }

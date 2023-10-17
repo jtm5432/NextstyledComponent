@@ -1,19 +1,38 @@
-// components/WidgetGrid.tsx
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ResizeHandle, { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { LayoutType, LayoutsProps } from '../types/WidgetGridTypes';
-import { useState, useEffect } from 'react';
 import Styled from '../styles/Widget.styles';
+
 const ResponsiveGridLayout = WidthProvider(Responsive);
-
-
 
 const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     const [currentLayouts, setCurrentLayouts] = useState(layouts);
+
+    // 메모이제이션된 이벤트 핸들러 생성
+    const handleResizeStop = useCallback(
+        (layout, oldItem, newItem) => {
+            // 리사이즈가 끝났을 때 호출되는 코드
+            setGridLayout(layout);
+        },
+        [setGridLayout]
+    );
+
+    const handleDragStop = useCallback(
+        (layout, oldItem, newItem) => {
+            // 드래그가 끝났을 때 호출되는 코드
+            setGridLayout(layout);
+        },
+        [setGridLayout]
+    );
+
+    useEffect(() => {
+        setCurrentLayouts(layouts);
+    }, [layouts]);
+
     const renderWidget = (itemKey: string) => {
-        console.log('newGridItem',itemKey);
+        console.log('newGridItem', itemKey);
         switch (itemKey) {
             case 'a':
                 return <Styled.WidgetCoral>위젯 A</Styled.WidgetCoral>;
@@ -24,18 +43,6 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
         }
     };
 
-    const addWidget = () => {
-        const newGridItem = { i: Date.now().toString(), x: 0, y: Infinity, w: 1, h: 2 };
-        setGridLayout(prevLayouts => ({
-            ...prevLayouts,
-            lg: [...prevLayouts!, newGridItem]
-        }));
-    }
-
-    useEffect(() => {
-        setCurrentLayouts(layouts);
-    }, [layouts]);
-    
     return (
         <ResponsiveGridLayout
             className="layout"
@@ -44,11 +51,11 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
             cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
             isResizable={true}
             resizeHandles={["sw", "nw", "se", "ne"]}
-            preventCollision={true}
-
+            onResizeStop={handleResizeStop} // 메모이제이션된 핸들러 사용
+            onDragStop={handleDragStop} // 메모이제이션된 핸들러 사용
         >
-            {(currentLayouts.lg || []).map(item => (
-                <div key={item.i}>
+            {(currentLayouts.lg || []).map((item) => (
+                <div key={item.i} id={item.i}>
                     {renderWidget(item.i)}
                 </div>
             ))}

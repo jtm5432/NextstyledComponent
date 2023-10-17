@@ -1,6 +1,8 @@
 import styled from 'styled-components';
 /**
  * Button component props
+ * - variant: 버튼의 종류 (확인 , 취소)
+ * 
  */
 interface ButtonProps {
     variant?: 'ok' | 'cancel'; // 버튼의 종류 (확인 , 취소)

@@ -1,26 +1,32 @@
-import React, { ReactElement } from 'react';
-import { FaHome, FaUserAlt, FaEnvelope } from 'react-icons/fa';
+import React from 'react';
 
+/**
+ * Icon 컴포넌트는 아래와 같은 props를 받습니다.
+ * - src: React.ComponentType | string - 아이콘의 이미지 또는 컴포넌트
+ * - alt: string - 아이콘의 대체 텍스트 및 해당 아이콘의 키값
+ */
 interface IconProps {
-    src: React.ComponentType  | null;
-  alt: string;
+  src: React.ComponentType | string;
+  alt?: string;
+  keyIndex?: string;
   onClick?: () => void;
+  style?: React.CSSProperties; // style 프로퍼티 추가
+
 }
 
-const Icon: React.FC<IconProps> = ({ src, alt, onClick }) => {
+const Icon: React.FC<IconProps> = ({ src, alt, onClick,style }) => {
   const isStringSrc = typeof src === 'string';
 
-  // 컴포넌트를 대문자로 시작하는 새 변수에 할당
-  const SrcComponent = FaHome;
+  // 문자열인 경우 이미지를 렌더링하고 아닌 경우 컴포넌트를 래핑하여 렌더링합니다.
+  const iconContent: React.ReactNode = isStringSrc ? (
+    <img src={src as string} alt={alt} />
+  ) : (
+    React.createElement(src as React.ComponentType, { 'aria-label': alt } as React.Attributes & { 'aria-label': string })
+  );
 
   return (
-    <div onClick={onClick} style={{ cursor: 'pointer' }}>
-      {isStringSrc ? (
-        <img src={src as string} alt={alt} />
-      ) : (
-        // 대문자로 시작하는 컴포넌트 이름 사용
-        <SrcComponent aria-label={alt} />
-      )}
+    <div onClick={onClick} style={{ cursor: 'pointer', ...style }}> {/* style을 병합 */}
+      {iconContent}
     </div>
   );
 };

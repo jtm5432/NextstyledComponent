@@ -5,7 +5,7 @@ import styled from 'styled-components';
 interface LabeledInputProps {
   label: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
 }
 
 export const StyledLabel = styled.label`

@@ -17,5 +17,6 @@ type SetGridLayout = React.Dispatch<React.SetStateAction<LayoutItemType[]>>;
 export interface LayoutsProps {
     layouts: LayoutType;
     setGridLayout: SetGridLayout;
+    
 }
 
