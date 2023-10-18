@@ -1,11 +1,11 @@
 import styled from 'styled-components';
 
 interface NavbarProps {
-  key: string;
+  dkey: string;
 }
 
 const Navbar = styled.div<NavbarProps>`
-  width: ${({ key }) => (key ==='true'? '30px' : 'auto')};
+  width: ${({ dkey }) => (dkey ==='true'? '30px' : 'auto')};
   min-width: 30px;
   padding: 5px;
   overflow: hidden;

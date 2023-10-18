@@ -10,8 +10,9 @@ import 'react-contexify/dist/ReactContexify.css';
 import { Menu, Item, useContextMenu, } from 'react-contexify';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { titleData } from '../types/localStorage'
-import { handleItemClick, handleContextMenu } from '../app/ContextHandler';
+import { handleItemClick, handleContextMenu } from '../app/hooks/ContextHandler';
 import Navbar from '../components/templates/Navbar'; // Navbar 컴포넌트 파일을 import
+import {fetchDashboardLineChart  } from '../app/queries/providerDashboard';
 
 import HeaderModal from '../components/templates/HeaderModal';
 import ContentModal from '../components/organisms/ContentModal';
@@ -32,6 +33,12 @@ const Main: React.FC = () => {
         { i: 'b', x: 1, y: 0, w: 3, h: 2 },
         { i: 'c', x: 4, y: 0, w: 1, h: 2 },
     ]);
+    // const [LayoutConfig, setLayoutConfig] = useState({
+    //     "a": {"chart":"LineChart","config":""},
+    //     "b": {"chart":"LineChart","config":""},
+    //     "c": {"chart":"LineChart","config":""},
+        
+    // })
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isWidgetClicked, setIsWidgetClicked] = useState(false);
     const queryClient = new QueryClient();
@@ -82,7 +89,11 @@ const Main: React.FC = () => {
         if (savedDataString) {
             setSavedData(JSON.parse(savedDataString));
         }
-
+        fetchDashboardLineChart().then((res) => {
+            const LinchartData = res;
+            console.log('LineChartData0',LinchartData)
+        });
+     
     }, []);
     return (
         <QueryClientProvider client={queryClient}>

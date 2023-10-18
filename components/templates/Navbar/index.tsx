@@ -59,7 +59,7 @@ const Navbar: React.FC<{
     //     };
     // }, [savedData, setGridLayout, currentIndex]);
     return (
-          <Styled.Navbar key={isNavbarMinimized.toString()}>
+          <Styled.Navbar dkey={isNavbarMinimized.toString()}>
              <div className="icon" onClick={toggleNavbar}>
                 {isNavbarMinimized ? <Icon src={FaChevronRight} alt="확대"/> : <Icon src = {FaChevronLeft} alt = "축소" />}
             </div>

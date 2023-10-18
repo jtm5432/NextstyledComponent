@@ -4,11 +4,15 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { LayoutType, LayoutsProps } from '../types/WidgetGridTypes';
 import Styled from '../styles/Widget.styles';
-
+import { useQuery } from 'react-query';
+import {fetchDashboardLineChart  } from '../app/queries/providerDashboard';
+import LineChart from './organisms/LineChart';
 const ResponsiveGridLayout = WidthProvider(Responsive);
+
 
 const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     const [currentLayouts, setCurrentLayouts] = useState(layouts);
+    const { data, error, isLoading } = useQuery('dashboardLineChart', fetchDashboardLineChart);
 
     // 메모이제이션된 이벤트 핸들러 생성
     const handleResizeStop = useCallback(
@@ -39,7 +43,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
             case 'b':
                 return <Styled.WidgetGreen>위젯 B</Styled.WidgetGreen>;
             default:
-                return <Styled.Widget>위젯 C</Styled.Widget>;
+                return <Styled.Widget>  <LineChart data={data} /></Styled.Widget>;
         }
     };
 

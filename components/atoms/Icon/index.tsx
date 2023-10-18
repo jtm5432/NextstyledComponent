@@ -3,7 +3,10 @@ import React from 'react';
 /**
  * Icon 컴포넌트는 아래와 같은 props를 받습니다.
  * - src: React.ComponentType | string - 아이콘의 이미지 또는 컴포넌트
- * - alt: string - 아이콘의 대체 텍스트 및 해당 아이콘의 키값
+ * - alt: string - 아이콘의 대체 텍스트
+ * - keyIndex: string - 아이콘의 키값
+ * - onClick: () => void - 아이콘을 클릭했을 때 호출되는 함수
+ * - style: React.CSSProperties - 아이콘의 스타일(추가)
  */
 interface IconProps {
   src: React.ComponentType | string;

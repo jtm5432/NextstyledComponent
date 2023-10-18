@@ -1,5 +1,5 @@
 import { stringify } from 'querystring';
-import { HandleItemClickProps } from '../types/ContextTypes';
+import { HandleItemClickProps } from '../../types/ContextTypes';
 import { Menu, Item, useContextMenu, } from 'react-contexify';
 
 export function handleContextMenu(show, event, setIsWidgetClicked) {
