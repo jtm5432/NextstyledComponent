@@ -12,8 +12,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { titleData } from '../types/localStorage'
 import { handleItemClick, handleContextMenu } from '../app/hooks/ContextHandler';
 import Navbar from '../components/templates/Navbar'; // Navbar 컴포넌트 파일을 import
-import {fetchDashboardLineChart  } from '../app/queries/providerDashboard';
-
+import { useQuery } from 'react-query';
 import HeaderModal from '../components/templates/HeaderModal';
 import ContentModal from '../components/organisms/ContentModal';
 
@@ -89,10 +88,7 @@ const Main: React.FC = () => {
         if (savedDataString) {
             setSavedData(JSON.parse(savedDataString));
         }
-        fetchDashboardLineChart().then((res) => {
-            const LinchartData = res;
-            console.log('LineChartData0',LinchartData)
-        });
+        
      
     }, []);
     return (

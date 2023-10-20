@@ -46,6 +46,10 @@ const fetchDashboardLineChart = async () => {
     const response = await axios.post('/api/axios', { endpoint, params });
     return response.data;
 };
+const useDashboardLineChart = () => {
+
+    return useQuery(['dashboardLineChart'], () => fetchDashboardLineChart());
+}
 // const fetchDashboardLineChart = async () => {
 //     const searchBody = {
 //         query: {
