@@ -36,16 +36,43 @@ const useGridData = (gridId: string) => {
 //     processQueriesInBatches();
 // };
 const fetchDashboardLineChart = async () => {
-    const endpoint = "https://192.168.10.224:8081/reportdata/";
+    const endpoint = "https://localhost:8081/reportdata";
     const params = {
         operator: "getLineChartDashboard",
-        sql: "SELECT ['zhost.keyword'], count(*) AS aa FROM ['zen-{fw*'] WHERE query('@timestamp:[now-1m TO now]') GROUP BY ['zhost.keyword'], date_histogram(field='@timestamp','time_zone'='+9', 'interval'='10s', 'alias'='result')",
-        dataCount: 10
+        sql: "SELECT ['zhost.keyword'], count(*) AS aa FROM ['zen-{fw*'] WHERE query('@timestamp:[now-2m TO now]') GROUP BY ['zhost.keyword'], date_histogram(field='@timestamp','time_zone'='+9', 'interval'='10s', 'alias'='result')",
+        dataCount: 5
     };
   
-    const response = await axios.post('/api/axios', { endpoint, params });
-    return response.data;
+    // const response = await axios.get(endpoint, { 
+    //     params,
+    //   //  httpsAgent: agent 
+    // });
+   // const response = await axios.post('/api/axios', { endpoint, params });
+    //console.log('response.data',response)
+    //return response.data;
 };
+
+const fetchDashboardBarcolChart = async () => {
+    const endpoint = "https://localhost:8081/reportdata";
+    const params = {
+      operator: "getBarColChartDashboard",
+      sql: "SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"
+    };
+  
+    // const response = await axios.get(endpoint, { 
+    //     params,
+    //     //httpsAgent: agent 
+    // });
+    const response = await axios.post('/api/axios', { endpoint, params });
+    console.log('response.data',response)
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error("Failed to fetch data");
+    }
+  };
+
+
 const useDashboardLineChart = () => {
 
     return useQuery(['dashboardLineChart'], () => fetchDashboardLineChart());
@@ -93,5 +120,5 @@ const useDashboardLineChart = () => {
 //     }
 // };
 
-export { addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart  };
+export { addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart  };
 

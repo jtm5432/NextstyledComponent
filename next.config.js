@@ -4,6 +4,8 @@ const nextConfig = {
     compiler:{
         styledComponents: true
     },
+  
+   
     
     async headers() {
         return [

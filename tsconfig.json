@@ -28,8 +28,14 @@
         "./*"
       ]
     },
-    "typeRoots": ["./types", "./node_modules/@types"],
-    "types": ["react-contexify", "node"]
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ],
+    "types": [
+      "react-contexify",
+      "node"
+    ]
   },
   "include": [
     "next-env.d.ts",

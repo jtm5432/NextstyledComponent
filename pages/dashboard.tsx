@@ -28,9 +28,12 @@ const Main: React.FC = () => {
         description: "Sample Description"
     });
     const [gridLayout, setGridLayout] = useState([
-        { i: 'a', x: 0, y: 0, w: 1, h: 2 },
-        { i: 'b', x: 1, y: 0, w: 3, h: 2 },
-        { i: 'c', x: 4, y: 0, w: 1, h: 2 },
+       
+        // { i: 'c', x: 4, y: 0, w: 2, h: 2 },
+        // { i: 'd', x: 4, y: 2, w: 2, h: 2 },
+        { i: 'Globe3D',x: 4, y: 2, w: 4, h: 4 },
+        { i:'GlobeTable',x:0, y:2, w:2, h:2},
+        {i:'GlobeTableSecond',x:8,y:2,w:3,h:2},
     ]);
     // const [LayoutConfig, setLayoutConfig] = useState({
     //     "a": {"chart":"LineChart","config":""},

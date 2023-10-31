@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 
-const backgroundImageUrl = '/GlobeBackground.svg';
+const backgroundImageUrl = '/renders/../GlobeBackground.svg';
 
 const MainContainer = styled.div`
   width: 100%;

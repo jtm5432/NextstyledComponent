@@ -4,6 +4,8 @@ const Widget = styled.div`
     width: 100%;
     height: 100%;
     background: white;
+    overflow-x: auto;
+    overflow-y: hidden;
 `;
 
 const WidgetCoral = styled(Widget)`
