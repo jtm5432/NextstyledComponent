@@ -22,9 +22,10 @@ const LineChart: React.FC<LineChartProps> = ({ width = 100, height = 100 ,widget
    // const ParentwidgetRef = useRef<HTMLDivElement>(widgetRef);
     const [chartWidth, setChartWidth] = useState<number>(width);
     const [chartHeight, setChartHeight] = useState<number>(height);
-    const { data, isLoading,refetch  } = useQuery<string>('dashboardLineChart', fetchDashboardLineChart, {  // data의 타입을 string으로 변경
+    const { data, isLoading,refetch  } = useQuery<string>('dashboardLineChart', fetchDashboardLineChart, {  // data의 타입을 string으로 변경\
+        refetchInterval: 5000, // refetch the data every 5 seconds
         onSuccess: (rawData: string) => {  // rawData의 타입을 string으로 변경
-            const lines = rawData.trim().split("\n");
+            const lines = rawData?.trim().split("\n");
             const headers = lines[0].split(",");
             /**
              * @description rawData를 파싱하여 데이터셋을 생성합니다.
@@ -37,7 +38,21 @@ const LineChart: React.FC<LineChartProps> = ({ width = 100, height = 100 ,widget
                     height: chartHeight  // 여기에 height를 설정
                 },
                 xAxis: {
-                    categories: datasets[0]?.data.map(item => item.x) || []  // 첫 번째 데이터셋에서 x 값들을 카테고리로 사용
+                    categories: datasets[0]?.data.map(item => item.x) || [] , // 첫 번째 데이터셋에서 x 값들을 카테고리로 사용
+                    type: 'datetime',
+                    tickPositioner: function () {
+                        let positions: number[] = [];
+                        if (this.max && this.min) {
+                            let interval = Math.round((this.max - this.min) / 9); // 10개의 눈금을 위해 9로 나눔
+                            let tick = this.min;
+                            for (let i = 0; i < 10; i++) {
+                                positions.push(tick);
+                                tick += interval;
+                            }
+                        }
+                        return positions;
+                    },
+
                 },
                 plotOptions: {
                     area: {

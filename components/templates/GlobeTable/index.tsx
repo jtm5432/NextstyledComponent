@@ -19,7 +19,6 @@ const RecentDataTable: React.FC<WidgetChartProps> = ({ width = 100, height = 100
     const initialHeight = widgetRef?.current?.clientHeight || height;
     const [chartWidth, setChartWidth] = useState<number>(initialWidth);
     const [chartHeight, setChartHeight] = useState<number>(initialHeight);
-
     const queryClient = useQueryClient();
     const initialData: DataRow[] = queryClient.getQueryData('recentData') || [];
     const [recentData, setRecentData] = useState<DataRow[]>(initialData);
@@ -44,7 +43,6 @@ const RecentDataTable: React.FC<WidgetChartProps> = ({ width = 100, height = 100
     }, [widgetRef, isResized]);
   
     const tableData = recentData ? recentData : [];
-    console.log('recentData', chartHeight);
 
     return (
       <TableContainer>

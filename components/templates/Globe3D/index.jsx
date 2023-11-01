@@ -72,7 +72,6 @@ const GlobeCloud = async (globe, globeRadius = 100) => {
 
 
 const World = (props) => {
-  console.log('wrodRendered')
   const globeEl = useRef();
   const { data, error } = useSocketData('firewall');
   const [state, dispatch] = useReducer(reducer, initialState);

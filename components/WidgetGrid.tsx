@@ -9,6 +9,9 @@ import Styled from '../styles/Widget.styles';
 import { useQuery } from 'react-query';
 import { fetchDashboardLineChart } from '../app/queries/providerDashboard';
 import debounce from 'lodash/debounce';
+import {formatDate} from '../app/utils/TableFormatter';
+import LineChart  from './organisms/Highchart/DashboardHighchart';
+import BarcolChart  from './organisms/Highchart/BarcolHighchart';
 // 서버사이드 렌더링을 방지하기 위해 동적 임포트 사용
 const DynamicWorld = dynamic(
     () => import('./templates/Globe3D')
@@ -92,14 +95,14 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                 return (
                     <Styled.Widget ref={widgetRef}>
                         <div style={{ width: '100%', height: '100%' }}>
-                            {/* <LineChart
+                            <LineChart
                                 width={widgetDimensions.width}
                                 height={widgetDimensions.height}
                                 key={itemKey}
                                 widgetRef={widgetRef}
                                 isResized={isResized}
                                 linecharttype={'area'}
-                            /> */}
+                            />
 
                         </div>
                     </Styled.Widget>
@@ -115,7 +118,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
             }
             case 'GlobeTable':{
                 const columns = [
-                    { Header: 'timestamp', accessor: 'timestamp' },
+                    { Header: 'timestamp', accessor: 'timestamp', Cell: ({ value }) => formatDate(value)  },
                     { Header: 'airline', accessor: 'airline' },
                     { Header: 'srcAirportId', accessor: 'srcAirportId' },
                     { Header: 'stops', accessor: 'stops' },
@@ -129,7 +132,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
             }
             case 'GlobeTableSecond':{
                 const columns =   [
-                    { Header: 'timestamp', accessor: 'timestamp' },
+                    { Header: 'timestamp', accessor: 'timestamp'  ,Cell: ({ value }) => formatDate(value)  },
                     { Header: 'd.location', accessor: 'dstIata.location' },
                     { Header: 'o.location', accessor: 'ostIata.location' },
                     { Header: 'airline', accessor: 'airline' },
@@ -148,14 +151,14 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                 return (
                     <Styled.Widget ref={widgetRef}>
                         <div style={{ width: '100%', height: '100%' }}>
-                            {/* <LineChart
+                            <BarcolChart
                                 width={widgetDimensions.width}
                                 height={widgetDimensions.height}
                                 key={itemKey}
                                 widgetRef={widgetRef}
                                 isResized={isResized}
-                                linecharttype={'line'}
-                            /> */}
+                             
+                            />
 
                         </div>
                     </Styled.Widget>

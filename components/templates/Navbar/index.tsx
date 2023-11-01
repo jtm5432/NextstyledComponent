@@ -31,6 +31,7 @@ const Navbar: React.FC<{
 
         if (data.gridLayout) {
             const parsedGridLayout = JSON.parse(data.gridLayout);
+            console.log('parsed',parsedGridLayout)
             // parsedGridLayout을 사용하여 gridLayout을 업데이트
             setGridLayout(parsedGridLayout);
         }

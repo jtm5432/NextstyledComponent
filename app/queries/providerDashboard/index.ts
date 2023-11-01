@@ -39,7 +39,7 @@ const fetchDashboardLineChart = async () => {
     const endpoint = "https://localhost:8081/reportdata";
     const params = {
         operator: "getLineChartDashboard",
-        sql: "SELECT ['zhost.keyword'], count(*) AS aa FROM ['zen-{fw*'] WHERE query('@timestamp:[now-2m TO now]') GROUP BY ['zhost.keyword'], date_histogram(field='@timestamp','time_zone'='+9', 'interval'='10s', 'alias'='result')",
+        sql: "SELECT ['zhost.keyword'], count(*) AS aa FROM ['zen-{fw*'] WHERE query('@timestamp:[now-5h TO now]') GROUP BY ['zhost.keyword'], date_histogram(field='@timestamp','time_zone'='+9', 'interval'='10s', 'alias'='result')",
         dataCount: 5
     };
   
@@ -47,9 +47,13 @@ const fetchDashboardLineChart = async () => {
     //     params,
     //   //  httpsAgent: agent 
     // });
-   // const response = await axios.post('/api/axios', { endpoint, params });
-    //console.log('response.data',response)
-    //return response.data;
+    const response = await axios.post('/api/axios', { endpoint, params });
+      // console.log('response.data',response)
+       if (response.status === 200) {
+        return response.data;
+      } else {
+        throw new Error("Failed to fetch data");
+      }
 };
 
 const fetchDashboardBarcolChart = async () => {
@@ -77,48 +81,6 @@ const useDashboardLineChart = () => {
 
     return useQuery(['dashboardLineChart'], () => fetchDashboardLineChart());
 }
-// const fetchDashboardLineChart = async () => {
-//     const searchBody = {
-//         query: {
-//             bool: {
-//                 filter: [
-//                     { term: { "zhost.keyword": "" } },
-//                     { range: { "@timestamp": { "gte": "now-1h", "lte": "now" } } }
-//                 ]
-//             }
-//         },
-//         aggs: {
-//             zhost_groups: {
-//                 terms: { 
-//                     field: "zhost",
-//                     size: 10  // 10개의 항목만 가져옴
-//                 },
-//                 aggs: {
-//                     date_histogram_aggs: {
-//                         date_histogram: {
-//                             field: "@timestamp",
-//                             time_zone: "+9",
-//                             interval: "10s"
-//                         }
-//                     }
-//                 }
-//             }
-//         },
-//         size: 1000
-//     };
-//     try {
-//         const response = await axios.post('/api/ELASTIC', {
-//             index: '*', 
-//             body: searchBody
-//         });
-        
-//         return response.data;
-
-//     } catch (error) {
-//         console.error("Error fetching line chart data:", error);
-//         throw error;
-//     }
-// };
 
 export { addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart  };
 
