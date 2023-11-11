@@ -195,7 +195,7 @@ const World = (props) => {
         // 애니메이션 정리 로직, 필요한 경우 requestAnimationFrame을 취소합니다.
       };
     }
-    animate(directionalLight, cleanup);
+    //animate(directionalLight, cleanup);
     setInitialized(true);
 
   }, [globeEl.current]);

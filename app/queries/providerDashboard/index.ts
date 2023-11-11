@@ -70,7 +70,7 @@ const fetchDashboardBarcolChart = async () => {
     const response = await axios.post('/api/axios', { endpoint, params });
     console.log('response.data',response)
     if (response.status === 200) {
-      return response.data;
+      return JSON.stringify(response.data);
     } else {
       throw new Error("Failed to fetch data");
     }

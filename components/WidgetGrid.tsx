@@ -34,8 +34,7 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     console.log('layouts', layouts)
     const [currentLayouts, setCurrentLayouts] = useState(layouts);
-    const { data, error, isLoading } = useQuery('dashboardLineChart', fetchDashboardLineChart);
-    //const widgetRef = useRef<HTMLDivElement>(null);  // div에 대한 ref
+  //const widgetRef = useRef<HTMLDivElement>(null);  // div에 대한 ref
     const [dimensions, setDimensions] = useState<{ [key: string]: { width: number, height: number } }>({});
     const lastArgsRef = useRef<any[]>([]);
 
@@ -45,6 +44,16 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
         setIsResized(prev => !prev);
      
     }, 200);
+    const [chartInfoMap, setChartInfoMap] = useState({
+        'a': { type: 'line', otherProp: 'value1' },
+        'b': { type: 'bar', otherProp: 'value2' },
+        'c': { type: 'c', otherProp: 'value3' },
+        'd': { type: 'd', otherProp: 'value3' },
+          'Globe3D':{type:'Globe3D',otherProp:'value4'},
+        'GlobeTable':{type:'GlobeTable',otherProp:'value5'},
+        'GlobeTableSecond':{type:'GlobeTableSecond',otherProp:'value6'},
+    });
+
     const handleResizeStop = useCallback(
         (...args) => {
             lastArgsRef.current = args;
@@ -81,8 +90,9 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     const renderWidget = (itemKey: string) => {
         const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
         const widgetRef = useRef<HTMLDivElement>(null); // 고유한 widgetRef 생성
-
-        switch (itemKey) {
+        const chartInfo = chartInfoMap[itemKey] || { type: 'default' };
+        console.log('chartInfo',chartInfo)
+        switch (chartInfo.type) {
             case 'a':
                 return <Styled.WidgetCoral>위젯 A</Styled.WidgetCoral>;
             case 'b':
