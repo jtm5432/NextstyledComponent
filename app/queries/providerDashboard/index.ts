@@ -55,7 +55,36 @@ const fetchDashboardLineChart = async () => {
         throw new Error("Failed to fetch data");
       }
 };
+function buildOpenSearchQuery({ 
+  startTime, 
+  endTime, 
+  actionField, 
+  actionValue, 
+  aggField, 
+  aggType, 
+  aggFieldName 
+}) {
+  // Basic query structure
+  const query = {
+    size: 0,
+    query: {
+      bool: {
+        filter: [
+          { range: { "@timestamp": { gte: startTime, lte: endTime } } },
+          { term: { [actionField]: actionValue } }
+        ]
+      }
+    },
+    aggs: {}
+  };
 
+  // Adding dynamic aggregation
+  query.aggs[aggField] = {
+    [aggType]: { field: aggFieldName }
+  };
+
+  return query;
+}
 const fetchDashboardBarcolChart = async () => {
     const endpoint = "https://localhost:8081/reportdata";
     const params = {
