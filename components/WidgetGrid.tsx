@@ -48,8 +48,28 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
 
     }, 200);
     const [chartInfoMap, setChartInfoMap] = useState({
-        'a': { type: 'line', otherProp: 'value1' },
-        'b': { type: 'bar', otherProp: 'value2' },
+        'a': {
+            type: 'line', otherProp: {
+                startTime: '2023-01-01T11:58:00Z',
+                endTime: '2023-01-01T12:00:00Z',
+                actionField: 'firewall.action',
+                actionValue: 'drop',
+                aggField: 'firewall.dst.keyword',
+                aggType: 'avg',
+                aggFieldName: 'facility'
+            }
+        },
+        'b': {
+            type: 'bar', otherProp: {
+                startTime: '2023-01-01T11:58:00Z',
+                endTime: '2023-01-01T12:00:00Z',
+                actionField: 'firewall.action',
+                actionValue: 'drop',
+                aggField: 'firewall.dst.keyword',
+                aggType: 'avg',
+                aggFieldName: 'facility'
+            }
+        },
         'c': { type: 'c', otherProp: 'value3' },
         'd': { type: 'd', otherProp: 'value3' },
         'Globe3D': { type: 'Globe3D', otherProp: 'value4' },
@@ -178,31 +198,32 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
 
                 )
             }
-            default: {  
-            {/* Render the widget content here */}
-          
+            default: {
+                {/* Render the widget content here */ }
+
                 console.log('widgetDimension123', widgetDimensions);
                 return (
-                   
+
                     <Styled.Widget ref={widgetRef}>
-                         <div onClick={() => handleWidgetClick(itemKey)}>
-                        <div style={{ width: '100%', height: '100%' }}>
-                            <BarcolChart
-                                width={widgetDimensions.width}
-                                height={widgetDimensions.height}
-                                key={itemKey}
-                                widgetRef={widgetRef}
-                                isResized={isResized}
-                            />
-                        </div>
+                        <div onClick={() => handleWidgetClick(itemKey)}>
+                            <div style={{ width: '100%', height: '100%' }}>
+                                <BarcolChart
+                                    width={widgetDimensions.width}
+                                    height={widgetDimensions.height}
+                                    key={itemKey}
+                                    widgetRef={widgetRef}
+                                    isResized={isResized}
+                                />
+                            </div>
                         </div>
                     </Styled.Widget>
-                    
+
                 );
             }
         }
     };
 
+    const selectedWidgetData = selectedWidgetKey ? chartInfoMap[selectedWidgetKey].otherProp : {};
 
     return (
         <>
@@ -224,11 +245,11 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                 ))}
             </ResponsiveGridLayout>
             <HeaderModal isOpen={isModalOpen} onClose={handleCloseModal}>
-                <ContentModal
-                     data={{}}
-                    onClose={handleCloseModal}
-                    onSave={handleSave}
-                />
+            <ContentModal
+                data={selectedWidgetData}
+                onClose={handleCloseModal}
+                onSave={handleSave}
+            />
             </HeaderModal>
 
         </>
