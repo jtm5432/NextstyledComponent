@@ -6,6 +6,7 @@
  * @returns 시간 과 value값으로 전환해준다.
  */
 export const parsedRowData = (rawData: string) => {
+    console.log('parsedRowData',rawData);
     const lines = rawData.trim().split("\n");
     const headers = lines[0].split(",");
     const datasets: { label: string, data: { x: string, y: number }[] }[] = 

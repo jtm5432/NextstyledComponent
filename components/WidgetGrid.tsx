@@ -14,7 +14,7 @@ import LineChart from './organisms/Highchart/DashboardHighchart';
 import BarcolChart from './organisms/Highchart/BarcolHighchart';
 
 import HeaderModal from '../components/templates/HeaderModal';
-import ContentModal from '../components/organisms/ContentModal';
+import DataSelectModal from '../components/organisms/DataSelectModal';
 
 
 // 서버사이드 렌더링을 방지하기 위해 동적 임포트 사용
@@ -223,7 +223,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
         }
     };
 
-    const selectedWidgetData = selectedWidgetKey ? chartInfoMap[selectedWidgetKey].otherProp : {};
+    const selectedWidgetData = selectedWidgetKey ? chartInfoMap[selectedWidgetKey] : {};
 
     return (
         <>
@@ -245,11 +245,10 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                 ))}
             </ResponsiveGridLayout>
             <HeaderModal isOpen={isModalOpen} onClose={handleCloseModal}>
-            <ContentModal
-                data={selectedWidgetData}
-                onClose={handleCloseModal}
-                onSave={handleSave}
-            />
+            <DataSelectModal
+                    data={selectedWidgetData}
+                    onClose={handleCloseModal}
+                    onSave={handleSave} selectOptions={[]}            />
             </HeaderModal>
 
         </>

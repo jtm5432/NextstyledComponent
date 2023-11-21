@@ -39,7 +39,7 @@ const fetchDashboardLineChart = async () => {
     const endpoint = "https://localhost:8081/reportdata";
     const params = {
         operator: "getLineChartDashboard",
-        sql: "SELECT ['zhost.keyword'], count(*) AS aa FROM ['zen-{fw*'] WHERE query('@timestamp:[now-5h TO now]') GROUP BY ['zhost.keyword'], date_histogram(field='@timestamp','time_zone'='+9', 'interval'='10s', 'alias'='result')",
+        sql: `SELECT ['zhost.keyword'], count(*) AS aa FROM ['c00000-zen-{fw*'] WHERE query('@timestamp:[now-5h TO now]') GROUP BY ['zhost.keyword'], date_histogram(field='@timestamp','time_zone'='+9', 'interval'='10s', 'alias'='result')`,
         dataCount: 5
     };
   
@@ -48,7 +48,7 @@ const fetchDashboardLineChart = async () => {
     //   //  httpsAgent: agent 
     // });
     const response = await axios.post('/api/axios', { endpoint, params });
-      // console.log('response.data',response)
+       console.log('response.data',response)
        if (response.status === 200) {
         return response.data;
       } else {
@@ -85,11 +85,34 @@ function buildOpenSearchQuery({
 
   return query;
 }
+const getIndexlist = async () => {
+  const endpoint = "https://localhost:8081/reportdata";
+  const params = {
+    operator: "getIndices",
+    cid: "c0000*"
+  };
+  const response = await axios.post('/api/axios', { endpoint, params });
+ // console.log('getIndexlistresponse.data', response);
+
+  if (response.status === 200) {
+    const data = response.data;
+    const dataArray = data.split(' ');
+    console.log('dataArray', dataArray);
+    return dataArray;
+  } else {
+    throw new Error("Failed to fetch data");
+  }
+};
+
+const getIndexlistquery = () =>{
+
+  return useQuery(['getIndexlist'], () => getIndexlist());  
+}
 const fetchDashboardBarcolChart = async () => {
     const endpoint = "https://localhost:8081/reportdata";
     const params = {
       operator: "getBarColChartDashboard",
-      sql: "SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"
+      sql: "SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['c00000-zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"
     };
   
     // const response = await axios.get(endpoint, { 
@@ -111,5 +134,5 @@ const useDashboardLineChart = () => {
     return useQuery(['dashboardLineChart'], () => fetchDashboardLineChart());
 }
 
-export { addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart  };
+export { addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist };
 

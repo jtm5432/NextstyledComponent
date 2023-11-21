@@ -25,13 +25,23 @@ const LineChart: React.FC<LineChartProps> = ({ width = 100, height = 100 ,widget
     const { data, isLoading,refetch  } = useQuery<string>('dashboardLineChart', fetchDashboardLineChart, {  // data의 타입을 string으로 변경\
         refetchInterval: 5000, // refetch the data every 5 seconds
         onSuccess: (rawData: string) => {  // rawData의 타입을 string으로 변경
-            const lines = rawData?.trim().split("\n");
-            const headers = lines[0].split(",");
+           // console.log('rawData',rawData);
+            if (typeof rawData === 'string') {
+                const lines = rawData?.trim().split("\n");
+            
+                const headers = lines[0].split(",");
+            }
             /**
              * @description rawData를 파싱하여 데이터셋을 생성합니다.
              * @param rawData  
              */
-            const datasets = parsedRowData(rawData);
+            let datasets;
+            if(typeof(rawData)==='string'){
+                datasets= parsedRowData(rawData);
+            }
+            else {
+                datasets = rawData;
+            }
             const transformedData: Options = {
                 chart: {
                     width: chartWidth,  // 여기에 width를 설정
