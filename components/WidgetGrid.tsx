@@ -16,6 +16,10 @@ import BarcolChart from './organisms/Highchart/BarcolHighchart';
 import HeaderModal from '../components/templates/HeaderModal';
 import DataSelectModal from '../components/organisms/DataSelectModal';
 
+interface ChartProperties {
+    type: string;
+    otherProp: object | string;  // Adjusted to accommodate both object and string types
+}
 
 // 서버사이드 렌더링을 방지하기 위해 동적 임포트 사용
 const DynamicWorld = dynamic(
@@ -47,7 +51,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
         setIsResized(prev => !prev);
 
     }, 200);
-    const [chartInfoMap, setChartInfoMap] = useState({
+    const [chartInfoMap, setChartInfoMap] = useState<Record<string, ChartProperties>>({
         'a': {
             type: 'line', otherProp: {
                 startTime: '2023-01-01T11:58:00Z',
@@ -70,7 +74,17 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                 aggFieldName: 'facility'
             }
         },
-        'c': { type: 'c', otherProp: 'value3' },
+        'c': {
+            type: 'bar', otherProp: {
+                startTime: '2023-01-01T11:58:00Z',
+                endTime: '2023-01-01T12:00:00Z',
+                actionField: 'firewall.action',
+                actionValue: 'drop',
+                aggField: 'firewall.dst.keyword',
+                aggType: 'avg',
+                aggFieldName: 'facility'
+            }
+        },
         'd': { type: 'd', otherProp: 'value3' },
         'Globe3D': { type: 'Globe3D', otherProp: 'value4' },
         'GlobeTable': { type: 'GlobeTable', otherProp: 'value5' },
@@ -78,6 +92,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     });
     const [selectedWidgetKey, setSelectedWidgetKey] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedWidgetId, setSelectedWidgetId] = useState(null);
 
     const handleResizeStop = useCallback(
         (...args) => {
@@ -94,7 +109,10 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
         },
         [setGridLayout]
     );
+    const handleWidgetSelect = (widgetId) => {
+        setSelectedWidgetId(widgetId);
 
+    };
     useEffect(() => {
         setCurrentLayouts(layouts);
     }, [layouts]);
@@ -128,13 +146,29 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
      * 모달 저장 버튼 클릭시
      */
     const handleSave = () => {
-
+        //setCurrentLayouts
     }
+    /*
+    * 모달에서 값이 수정될때 
+    */
+    const handleChange = (option, target) => {
+        // 기존 상태를 복사하고 특정 키의 값을 업데이트
+        if (selectedWidgetId) {
+            console.log('chartInfoMap', chartInfoMap);
+            const chartInfoMapTemp: Record<string, ChartProperties> = { ...chartInfoMap }; // Create a copy of chartInfoMap
+            chartInfoMapTemp[selectedWidgetId] = chartInfoMapTemp[option];
+            setChartInfoMap(chartInfoMapTemp);
+            console.log('chartInfoMap2', chartInfoMap, currentLayouts);
+
+        }
+    };
+
     const renderWidget = (itemKey: string) => {
         const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
+        // END: ed8c6549bwf9
         const widgetRef = useRef<HTMLDivElement>(null); // 고유한 widgetRef 생성
         const chartInfo = chartInfoMap[itemKey] || { type: 'default' };
-        console.log('chartInfo', chartInfo)
+        console.log('chartInfor', chartInfo)
         switch (chartInfo.type) {
             case 'a':
                 return <Styled.WidgetCoral>위젯 A</Styled.WidgetCoral>;
@@ -239,16 +273,19 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
 
             >
                 {(currentLayouts.lg || []).map((item) => (
-                    <div key={item.i} id={item.i} >
+                    <div key={item.i} id={item.i} onClick={() => handleWidgetSelect(item.i)}>
                         {renderWidget(item.i)}
                     </div>
                 ))}
             </ResponsiveGridLayout>
             <HeaderModal isOpen={isModalOpen} onClose={handleCloseModal}>
-            <DataSelectModal
+                <DataSelectModal
                     data={selectedWidgetData}
                     onClose={handleCloseModal}
-                    onSave={handleSave} selectOptions={[]}            />
+                    onSave={handleSave}
+                    selectOptions={chartInfoMap}
+                    onChange={(option, target) => handleChange(option, target)}
+                />
             </HeaderModal>
 
         </>

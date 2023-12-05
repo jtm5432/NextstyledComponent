@@ -127,12 +127,19 @@ const fetchDashboardBarcolChart = async () => {
       throw new Error("Failed to fetch data");
     }
   };
+const gridLayouts = () => {
+   const endpoint = "https://localhost:8081/reportdata";
+    const params = {
+      operator: "getBarColChartDashboard",
+      sql: "SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['c00000-zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"
+    };
 
+}
 
 const useDashboardLineChart = () => {
 
     return useQuery(['dashboardLineChart'], () => fetchDashboardLineChart());
 }
 
-export { addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist };
+export { gridLayouts,addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist };
 

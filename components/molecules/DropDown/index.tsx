@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 
 interface DropDownProps {
     options: string[];
-    height: string; // Prop for setting the height of the dropdown
+    height?: string;
+    onOptionSelected?: (selectedOption: string) => void; // 콜백 함수 추가
 }
 
-const DropDown: React.FC<DropDownProps> = ({ options, height =300}) => {
+const DropDown: React.FC<DropDownProps> = ({ options, onOptionSelected }) => {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [filterText, setFilterText] = useState('');
@@ -17,6 +18,7 @@ const DropDown: React.FC<DropDownProps> = ({ options, height =300}) => {
     const handleOptionSelect = (option: string) => {
         setSelectedOption(option);
         setIsOpen(false);
+        if(onOptionSelected)onOptionSelected(option); // 콜백 함수 실행
     };
 
     const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,13 +35,12 @@ const DropDown: React.FC<DropDownProps> = ({ options, height =300}) => {
                 {selectedOption || 'Select an option'}
             </button>
             {isOpen && (
-                <div className="dropdown-menu" style={{ maxHeight: height, overflowY: 'auto' }}>
+                <div className="dropdown-menu">
                     <input
                         type="text"
                         placeholder="Filter options"
                         value={filterText}
                         onChange={handleFilterChange}
-                        className="dropdown-filter"
                     />
                     <ul className="dropdown-options">
                         {filteredOptions.map((option) => (
