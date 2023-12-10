@@ -12,11 +12,11 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { titleData } from '../types/localStorage'
 import { handleItemClick, handleContextMenu } from '../app/hooks/ContextHandler';
 import Navbar from '../components/templates/Navbar'; // Navbar 컴포넌트 파일을 import
-import { useQuery } from 'react-query';
+import { useQuery , useMutation ,UseMutationResult} from 'react-query';
 import HeaderModal from '../components/templates/HeaderModal';
 import ContentModal from '../components/organisms/ContentModal';
-
-
+import {saveDataToLocalStorage } from '../app/queries/providerDashboard';
+import {SaveData} from '../types/dashboardTypes';
 
 const Main: React.FC = () => {
     const CONTEXT_MENU_ID = 'main-context-menu';
@@ -53,6 +53,8 @@ const Main: React.FC = () => {
         setIsModalOpen(false);
     };
     const [savedData, setSavedData] = useState<Record<string, titleData>>({});
+   // const { data: localData } = useQuery('localData', fetchLayOutData);
+
     const handleSave = (updatedData: { [key: string]: string; }) => {
         // console.log('updatedData',updatedData)
         let { title, description, selectedIconName } = updatedData;
@@ -83,7 +85,20 @@ const Main: React.FC = () => {
         setIsModalOpen(false);
     };
  
-
+    //React Query: useMutation을 사용하여 데이터 저장
+    const saveMutation: UseMutationResult<SaveData, Error, SaveData> = useMutation(
+        saveDataToLocalStorage, 
+        {
+          onSuccess: (data) => {
+            // 성공 시 쿼리 무효화
+            queryClient.invalidateQueries('localData');
+          },
+          onError: (error) => {
+            // 에러 처리
+            console.error('Error saving data', error);
+          }
+        }
+      );
     useEffect(() => {
         const savedDataString = localStorage.getItem('data');
         console.log('savedDataString', savedDataString)

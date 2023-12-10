@@ -1,5 +1,7 @@
 import QueryQueueManager from './QueryQueueManager';
 import { useQuery } from 'react-query';
+import {SaveData} from '../../../types/dashboardTypes';
+
 import axios from 'axios';
 const PROVIDER_NAME = 'providerDashboard';
 
@@ -135,11 +137,22 @@ const gridLayouts = () => {
     };
 
 }
+const saveDataToLocalStorage = async (data: SaveData): Promise<SaveData> => {
+  //localStorage.setItem('data', JSON.stringify(data));
+  
+  const endpoint = "https://localhost:8081/reportdata";
+  const params = {
+    operator: "saveDashboardData",
+    data : data,
+  };
 
+
+    return data; // 저장된 데이터 반환
+};
 const useDashboardLineChart = () => {
 
     return useQuery(['dashboardLineChart'], () => fetchDashboardLineChart());
 }
 
-export { gridLayouts,addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist };
+export { gridLayouts,addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
 
