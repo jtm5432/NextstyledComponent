@@ -15,8 +15,8 @@ import Navbar from '../components/templates/Navbar'; // Navbar 컴포넌트 파�
 import { useQuery , useMutation ,UseMutationResult} from 'react-query';
 import HeaderModal from '../components/templates/HeaderModal';
 import ContentModal from '../components/organisms/ContentModal';
-import {saveDataToLocalStorage } from '../app/queries/providerDashboard';
-import {SaveData} from '../types/dashboardTypes';
+import {saveDataToLocalStorage ,SavegridLayouts  } from '../app/queries/providerDashboard';
+import {SaveData ,GridLayout } from '../types/dashboardTypes';
 
 const Main: React.FC = () => {
     const CONTEXT_MENU_ID = 'main-context-menu';
@@ -86,6 +86,17 @@ const Main: React.FC = () => {
     };
  
     //React Query: useMutation을 사용하여 데이터 저장
+    const saveGridLayoutMutation = useMutation(
+        ({ id, gridLayout }: { id: string; gridLayout: GridLayout[] }) => SavegridLayouts({ id, gridLayout }),
+        {
+          onSuccess: () => {
+            console.log("Grid layout saved successfully");
+          },
+          onError: (error) => {
+            console.error("Error saving grid layout", error);
+          }
+        }
+      );
     const saveMutation: UseMutationResult<SaveData, Error, SaveData> = useMutation(
         saveDataToLocalStorage, 
         {
@@ -99,6 +110,7 @@ const Main: React.FC = () => {
           }
         }
       );
+
     useEffect(() => {
         const savedDataString = localStorage.getItem('data');
         console.log('savedDataString', savedDataString)
@@ -109,11 +121,18 @@ const Main: React.FC = () => {
         
      
     }, []);
+    // gridLayout을 서버에 저장하는 함수
+    const handleSaveGridLayout = () => {
+        // 현재 gridLayout 상태를 사용하여 mutation 실행
+        saveGridLayoutMutation.mutate({ id: '특정ID', gridLayout: gridLayout });
+    };
+
+      
     return (
         <QueryClientProvider client={queryClient}>
             <div>
                 <Styled.MainContainer>
-                    <Navbar savedData={savedData} setGridLayout={setGridLayout} />
+                    <Navbar savedData={savedData} setGridLayout={setGridLayout} onSave = {handleSaveGridLayout}/>
 
                     <Styled.WidgetContainer onContextMenu={(event) => handleContextMenu(show, event, setIsWidgetClicked)}>
                         <Styled.TitleArea>

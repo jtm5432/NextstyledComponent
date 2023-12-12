@@ -6,8 +6,10 @@ import StyledIcon from './NavbarIcon.styels';
 import { iconsData } from '../../../app/IconData';
 import Tooltip from '../../molecules/Tooltip'; // Tooltip 컴포넌트를 가져옴
 import { LayoutsProps } from '../../../types/WidgetGridTypes';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaSave } from 'react-icons/fa'; // "저장" 아이콘을 위한 아이콘
 
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import {GridLayout} from '../../../types/dashboardTypes';
 /**
  * 대시보드 좌측 navbar
  */
@@ -17,7 +19,8 @@ const Navbar: React.FC<{
     savedData: Record<string, {
         gridLayout?: any; title: string, description: string, selectedIconName?: string
     }>
-}> = ({ savedData, setGridLayout }) => {
+    onSave: (gridLayout: { id: string; gridLayout: GridLayout[] }) => void; // onSave의 타입을 수정
+}> = ({ savedData, setGridLayout ,onSave }) => {
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isNavbarMinimized, setIsNavbarMinimized] = useState(true);
@@ -37,6 +40,12 @@ const Navbar: React.FC<{
         }
         // 그 외에는 다른 처리 수행
     };
+    const handleSaveClick = () => {
+        // 현재 그리드 레이아웃 상태를 가져와서 onSave 함수에 전달
+        const currentGridLayout = Object.values(savedData).map(data => data.gridLayout);
+        onSave({ id: '특정ID', gridLayout: currentGridLayout });
+    };
+
     console.log('savedDatasavedData', savedData)
     /**
      * 3초마다 navbar 아이템 변경
@@ -61,6 +70,9 @@ const Navbar: React.FC<{
     // }, [savedData, setGridLayout, currentIndex]);
     return (
           <Styled.Navbar dkey={isNavbarMinimized.toString()}>
+             <div className="save-icon" onClick={handleSaveClick}>
+                <FaSave /> {/* "저장" 아이콘 */}
+            </div>
              <div className="icon" onClick={toggleNavbar}>
                 {isNavbarMinimized ? <Icon src={FaChevronRight} alt="확대"/> : <Icon src = {FaChevronLeft} alt = "축소" />}
             </div>

@@ -129,12 +129,36 @@ const fetchDashboardBarcolChart = async () => {
       throw new Error("Failed to fetch data");
     }
   };
-const gridLayouts = () => {
+const SavegridLayouts = async ({
+  id,
+  gridLayout,
+}: {
+  id: string;
+  gridLayout: {
+    i: string;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }[];
+}) => {
    const endpoint = "https://localhost:8081/reportdata";
+    // params 정의
     const params = {
-      operator: "getBarColChartDashboard",
-      sql: "SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['c00000-zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"
+      operator: "modifyDoc",
+      index:"nextdashboard",
+      id: id,
+      gridLayout: gridLayout
     };
+  
+    const response = await axios.post('/api/axios', { endpoint, params });
+       console.log('response.data',response)
+    if (response.status === 200) {
+      return JSON.stringify(response.data);
+    } else {
+      throw new Error("Failed to fetch data");
+    }
+
 
 }
 const saveDataToLocalStorage = async (data: SaveData): Promise<SaveData> => {
@@ -142,8 +166,8 @@ const saveDataToLocalStorage = async (data: SaveData): Promise<SaveData> => {
   
   const endpoint = "https://localhost:8081/reportdata";
   const params = {
-    operator: "saveDashboardData",
-    data : data,
+    operator: "modifyDoc",
+    param : data,
   };
 
 
@@ -154,5 +178,5 @@ const useDashboardLineChart = () => {
     return useQuery(['dashboardLineChart'], () => fetchDashboardLineChart());
 }
 
-export { gridLayouts,addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
+export { SavegridLayouts,addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
 
