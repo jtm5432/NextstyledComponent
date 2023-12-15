@@ -161,6 +161,22 @@ const SavegridLayouts = async ({
 
 
 }
+const fetchSavedData = async (id) => {
+
+  console.log('fetchSavedData',id)
+  const endpoint = "https://localhost:8081/reportdata";
+  const params = {
+    operator: "searchDoc",
+    index:"nextdashboard",
+    
+  };
+  //if(id)params['id'] = id;
+
+  const response = await axios.post('/api/axios', { endpoint, params });
+  console.log('response.data',response)
+  return response.data.results;
+}
+
 const saveDataToLocalStorage = async (data: SaveData): Promise<SaveData> => {
   //localStorage.setItem('data', JSON.stringify(data));
   
@@ -178,5 +194,5 @@ const useDashboardLineChart = () => {
     return useQuery(['dashboardLineChart'], () => fetchDashboardLineChart());
 }
 
-export { SavegridLayouts,addQueryToQueue, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
+export { SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
 

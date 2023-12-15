@@ -17,14 +17,14 @@ import {GridLayout} from '../../../types/dashboardTypes';
 const Navbar: React.FC<{
     setGridLayout: LayoutsProps["setGridLayout"];
     savedData: Record<string, {
-        gridLayout?: any; title: string, description: string, selectedIconName?: string
+       id?:string; gridLayout?: any; title: string, description: string, selectedIconName?: string
     }>
-    onSave: (gridLayout: { id: string; gridLayout: GridLayout[] }) => void; // onSave의 타입을 수정
+    onSave: (id: string) => void; // onSave의 타입을 수정
 }> = ({ savedData, setGridLayout ,onSave }) => {
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isNavbarMinimized, setIsNavbarMinimized] = useState(true);
-
+    const [selectedId, setSelectedId] = useState<string>(''); // 선택된 아이콘의 이름을 저장
     const toggleNavbar = () => {
     //console.log('isNavbarMinimized',isNavbarMinimized)
       setIsNavbarMinimized((prev) => !prev);
@@ -38,12 +38,15 @@ const Navbar: React.FC<{
             // parsedGridLayout을 사용하여 gridLayout을 업데이트
             setGridLayout(parsedGridLayout);
         }
+        if(data.id){
+            setSelectedId(data.id);
+        }
         // 그 외에는 다른 처리 수행
     };
     const handleSaveClick = () => {
         // 현재 그리드 레이아웃 상태를 가져와서 onSave 함수에 전달
-        const currentGridLayout = Object.values(savedData).map(data => data.gridLayout);
-        onSave({ id: '특정ID', gridLayout: currentGridLayout });
+        //const currentGridLayout = Object.values(savedData).map(data => data.gridLayout);
+        onSave(selectedId);
     };
 
     console.log('savedDatasavedData', savedData)
@@ -76,7 +79,7 @@ const Navbar: React.FC<{
              <div className="icon" onClick={toggleNavbar}>
                 {isNavbarMinimized ? <Icon src={FaChevronRight} alt="확대"/> : <Icon src = {FaChevronLeft} alt = "축소" />}
             </div>
-            {Object.values(savedData).map((data, index) => (
+            {savedData && Object.values(savedData).map((data, index) => (
 
                 <Styled.NavbarItem key={index} onClick={() => handleItemClickWithGridLayout(data)}>
 

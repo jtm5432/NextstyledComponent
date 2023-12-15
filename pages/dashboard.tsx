@@ -15,9 +15,20 @@ import Navbar from '../components/templates/Navbar'; // Navbar 컴포넌트 파�
 import { useQuery , useMutation ,UseMutationResult} from 'react-query';
 import HeaderModal from '../components/templates/HeaderModal';
 import ContentModal from '../components/organisms/ContentModal';
-import {saveDataToLocalStorage ,SavegridLayouts  } from '../app/queries/providerDashboard';
+import {saveDataToLocalStorage ,SavegridLayouts,fetchSavedData  } from '../app/queries/providerDashboard';
 import {SaveData ,GridLayout } from '../types/dashboardTypes';
+interface QueryDataItem {
+    id?: string;
+    gridLayout?: any; // Replace 'any' with a more specific type if you know what it should be
+    title: string;
+    description: string;
+    selectedIconName?: string;
+}
 
+// Assuming querydata is an object with string keys and QueryDataItem values
+interface QueryData {
+    [key: string]: QueryDataItem;
+}
 const Main: React.FC = () => {
     const CONTEXT_MENU_ID = 'main-context-menu';
     const { show } = useContextMenu({
@@ -52,8 +63,27 @@ const Main: React.FC = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
-    const [savedData, setSavedData] = useState<Record<string, titleData>>({});
-   // const { data: localData } = useQuery('localData', fetchLayOutData);
+    const { data: querydata, isLoading, error } = useQuery('savedData', fetchSavedData);
+
+    const [savedData, setSavedData] = useState<Record<string, QueryDataItem>>({});
+
+    useEffect(() => {
+        if (querydata) {
+        console.log('querydata',querydata)
+            const newSavedData = Object.keys(querydata).reduce((acc, key) => {
+                const item: QueryDataItem = querydata[key];
+                acc[key] = {
+                    id: item.id || '',
+                    gridLayout: item.gridLayout || {},
+                    title: item.title,
+                    description: item.description,
+                    selectedIconName: item.selectedIconName || ''
+                };
+                return acc;
+            }, {} as Record<string, QueryDataItem>);
+            setSavedData(newSavedData);
+        }
+    }, [querydata]);
 
     const handleSave = (updatedData: { [key: string]: string; }) => {
         // console.log('updatedData',updatedData)
@@ -80,7 +110,7 @@ const Main: React.FC = () => {
         //console.log('gridLayout',gridLayout);
         // 변경된 데이터 맵을 다시 로컬 스토리지에 저장
         localStorage.setItem('data', JSON.stringify(savedDataMap));
-        setSavedData(savedDataMap);
+       // setSavedData(savedDataMap);
 
         setIsModalOpen(false);
     };
@@ -111,23 +141,23 @@ const Main: React.FC = () => {
         }
       );
 
-    useEffect(() => {
-        const savedDataString = localStorage.getItem('data');
-        console.log('savedDataString', savedDataString)
-        // 2. useEffect에서 로컬 스토리지에서 데이터를 가져온 후, 상태를 업데이트합니다.
-        if (savedDataString) {
-            setSavedData(JSON.parse(savedDataString));
-        }
+    // useEffect(() => {
+    //     //const savedDataString = localStorage.getItem('data');
+    //     console.log('savedDataString', savedDataString)
+    //     // 2. useEffect에서 로컬 스토리지에서 데이터를 가져온 후, 상태를 업데이트합니다.
+    //     if (savedDataString) {
+    //         setSavedData(JSON.parse(savedDataString));
+    //     }
         
      
-    }, []);
+    // }, []);
     // gridLayout을 서버에 저장하는 함수
-    const handleSaveGridLayout = () => {
+    const handleSaveGridLayout = (id:string) => {
         // 현재 gridLayout 상태를 사용하여 mutation 실행
-        saveGridLayoutMutation.mutate({ id: '특정ID', gridLayout: gridLayout });
+        saveGridLayoutMutation.mutate({ id: "test2", gridLayout: gridLayout });
     };
 
-      
+    console.log('savedData',savedData)
     return (
         <QueryClientProvider client={queryClient}>
             <div>
