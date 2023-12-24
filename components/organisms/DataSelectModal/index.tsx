@@ -91,7 +91,6 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({ data, onClose, onSave
         });
         setOptionsArray(optionsArr);
     }, [selectOptions]);
-    console.log('formData', formData);
     /**
      * formData가 변경될 때마다 useEffect가 호출됩니다.
      */
@@ -125,7 +124,7 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({ data, onClose, onSave
             )}
 
             {/* Form Fields */}
-            {Object.entries(formData).map(([key, value]) => {
+            {formData&&Object.entries(formData).map(([key, value]) => {
                 // Check if value is an object
                 if (value && typeof value === 'object' && !Array.isArray(value)) {
                     return (

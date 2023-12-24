@@ -25,6 +25,7 @@ interface QueryDataItem {
     selectedIconName?: string;
 }
 
+
 // Assuming querydata is an object with string keys and QueryDataItem values
 interface QueryData {
     [key: string]: QueryDataItem;
@@ -38,13 +39,9 @@ const Main: React.FC = () => {
         title: "Sample Title",
         description: "Sample Description"
     });
-    const [gridLayout, setGridLayout] = useState([
-       
-        { i: 'c', x: 4, y: 0, w: 2, h: 2 },
-        { i: 'd', x: 4, y: 2, w: 2, h: 2 },
-         { i: 'Globe3D',x: 4, y: 2, w: 4, h: 4 },
-         { i:'GlobeTable',x:0, y:2, w:2, h:2},
-         {i:'GlobeTableSecond',x:8,y:2,w:3,h:2},
+
+    const [gridLayout, setGridLayout] = useState<GridLayout[]>([
+    
     ]);
     // const [LayoutConfig, setLayoutConfig] = useState({
     //     "a": {"chart":"LineChart","config":""},
@@ -69,18 +66,20 @@ const Main: React.FC = () => {
 
     useEffect(() => {
         if (querydata) {
-        console.log('querydata',querydata)
+      //  console.log('querydataitem',querydata)
             const newSavedData = Object.keys(querydata).reduce((acc, key) => {
-                const item: QueryDataItem = querydata[key];
+                const item = querydata[key];
+             //   console.log('item',item)
                 acc[key] = {
-                    id: item.id || '',
-                    gridLayout: item.gridLayout || {},
+                    id: item.id || '',  
+                    gridLayout: item.data.gridLayout || {},
                     title: item.title,
                     description: item.description,
                     selectedIconName: item.selectedIconName || ''
                 };
                 return acc;
             }, {} as Record<string, QueryDataItem>);
+           // console.log('newSavedData',newSavedData); 
             setSavedData(newSavedData);
         }
     }, [querydata]);
@@ -107,7 +106,7 @@ const Main: React.FC = () => {
 
         // 새로운 데이터 추가 (title을 키로 사용하여 중복되는 데이터를 덮어쓰기)
         savedDataMap[title] = { title, description, selectedIconName, gridLayout: JSON.stringify(gridLayout) };
-        //console.log('gridLayout',gridLayout);
+      //  console.log('gridLayout',gridLayout);
         // 변경된 데이터 맵을 다시 로컬 스토리지에 저장
         localStorage.setItem('data', JSON.stringify(savedDataMap));
        // setSavedData(savedDataMap);
@@ -120,10 +119,9 @@ const Main: React.FC = () => {
         ({ id, gridLayout }: { id: string; gridLayout: GridLayout[] }) => SavegridLayouts({ id, gridLayout }),
         {
           onSuccess: () => {
-            console.log("Grid layout saved successfully");
-          },
+            alert("Grid layout이 성공적으로 저장되었습니다.");          },
           onError: (error) => {
-            console.error("Error saving grid layout", error);
+            alert("Grid layout 저장 중 오류가 발생했습니다: " + error);
           }
         }
       );
@@ -131,6 +129,7 @@ const Main: React.FC = () => {
         saveDataToLocalStorage, 
         {
           onSuccess: (data) => {
+            console.log('saveDataToLocalStorage',data)
             // 성공 시 쿼리 무효화
             queryClient.invalidateQueries('localData');
           },
@@ -154,7 +153,8 @@ const Main: React.FC = () => {
     // gridLayout을 서버에 저장하는 함수
     const handleSaveGridLayout = (id:string) => {
         // 현재 gridLayout 상태를 사용하여 mutation 실행
-        saveGridLayoutMutation.mutate({ id: "test2", gridLayout: gridLayout });
+        console.log('handleSaveGridLayout',id,gridLayout)
+       if(id)saveGridLayoutMutation.mutate({ id: id, gridLayout: gridLayout });
     };
 
     console.log('savedData',savedData)
@@ -162,7 +162,7 @@ const Main: React.FC = () => {
         <QueryClientProvider client={queryClient}>
             <div>
                 <Styled.MainContainer>
-                    <Navbar savedData={savedData} setGridLayout={setGridLayout} onSave = {handleSaveGridLayout}/>
+                    <Navbar savedData={savedData} setGridLayout={setGridLayout} onSave = {(id)=>handleSaveGridLayout(id)}/>
 
                     <Styled.WidgetContainer onContextMenu={(event) => handleContextMenu(show, event, setIsWidgetClicked)}>
                         <Styled.TitleArea>

@@ -17,7 +17,7 @@ interface ContentModalProps {
 }
 
 const ContentModal: React.FC<ContentModalProps> = ({ data, onClose, onSave }) => {
-    const [formData, setFormData] = useState(data);
+    const [formData, setFormData] = useState(data || {}); // null이나 undefined인 경우 빈 객체로 초기화
     const [isIconSelectorOpen, setIsIconSelectorOpen] = useState(false);
     const [selectedIconName, setSelectedIconName] = useState<string>('home'); // 선택된 아이콘의 이름을 저장
     //console.log('iconsData', iconsData)
@@ -61,7 +61,7 @@ const ContentModal: React.FC<ContentModalProps> = ({ data, onClose, onSave }) =>
             )}
 
             {/* Form Fields */}
-            {Object.entries(formData).map(([key, value]) => (
+            {formData && Object.entries(formData).map(([key, value]) => (
                 <Label
                     key={key}
                     label={key}
@@ -69,7 +69,6 @@ const ContentModal: React.FC<ContentModalProps> = ({ data, onClose, onSave }) =>
                     onChange={(newValue) => handleInputChange(key, newValue)}
                 />
             ))}
-
             {/* Action Buttons */}
             <Button variant="ok" onClick={handleSaveClick}> Save </Button>
             <Button variant="cancel" onClick={onClose}> Close </Button>

@@ -152,7 +152,7 @@ const SavegridLayouts = async ({
     };
   
     const response = await axios.post('/api/axios', { endpoint, params });
-       console.log('response.data',response)
+       console.log('response.dataSavegridLayouts',response)
     if (response.status === 200) {
       return JSON.stringify(response.data);
     } else {
@@ -173,7 +173,7 @@ const fetchSavedData = async (id) => {
   //if(id)params['id'] = id;
 
   const response = await axios.post('/api/axios', { endpoint, params });
-  console.log('response.data',response)
+  console.log('response.datafetchSavedData',response)
   return response.data.results;
 }
 

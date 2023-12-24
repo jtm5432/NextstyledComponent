@@ -7,7 +7,6 @@
 
     useEffect(() => {
       const handleData = (receivedData: T) => {
-        console.log('handleData')
         setData(receivedData);
       };
 

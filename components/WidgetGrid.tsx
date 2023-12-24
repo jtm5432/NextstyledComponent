@@ -41,7 +41,9 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 
 
 const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
-    console.log('layouts', layouts)
+   
+    const widgetRefs = useRef({});
+    console.log('layouts', layouts,widgetRefs)
     const [currentLayouts, setCurrentLayouts] = useState(layouts);
     //const widgetRef = useRef<HTMLDivElement>(null);  // div에 대한 ref
     const [dimensions, setDimensions] = useState<{ [key: string]: { width: number, height: number } }>({});
@@ -93,7 +95,6 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     const [selectedWidgetKey, setSelectedWidgetKey] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedWidgetId, setSelectedWidgetId] = useState(null);
-
     const handleResizeStop = useCallback(
         (...args) => {
             lastArgsRef.current = args;
@@ -115,8 +116,10 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     };
     useEffect(() => {
         setCurrentLayouts(layouts);
+        
     }, [layouts]);
 
+    
     useEffect(() => {
         const handleWindowResize = () => {
             debouncedHandleResizeStop();
@@ -162,13 +165,44 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
 
         }
     };
+   useEffect(() => {
+        const resizeObserver = new ResizeObserver(entries => {
+            entries.forEach(entry => {
+                const { width, height } = entry.contentRect;
+                const widgetKey : any = entry.target.getAttribute('id');
+                setDimensions(prevDimensions => ({
+                    ...prevDimensions,
+                    [widgetKey]: { width, height }
+                }));
+            });
+        });
 
+        Object.values(widgetRefs.current).forEach(ref => {
+            if ((ref as React.RefObject<any>).current) {
+                resizeObserver.observe((ref as React.RefObject<any>).current);
+            }
+        });
+
+        return () => {
+            Object.values(widgetRefs.current).forEach(ref => {
+                if ((ref as React.RefObject<any>).current) {
+                    resizeObserver.unobserve((ref as React.RefObject<any>).current);
+                }
+            });
+        };
+    }, []);
     const renderWidget = (itemKey: string) => {
+        //setIsResized(true);
         const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
+        
         // END: ed8c6549bwf9
-        const widgetRef = useRef<HTMLDivElement>(null); // 고유한 widgetRef 생성
+        if (!widgetRefs.current[itemKey]) {
+            widgetRefs.current[itemKey] = React.createRef();
+        }
+        const widgetRef = widgetRefs.current[itemKey];
         const chartInfo = chartInfoMap[itemKey] || { type: 'default' };
-        console.log('chartInfor', chartInfo)
+        console.log('chartInfor', itemKey)
+        
         switch (chartInfo.type) {
             case 'a':
                 return <Styled.WidgetCoral>위젯 A</Styled.WidgetCoral>;

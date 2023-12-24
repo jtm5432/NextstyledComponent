@@ -79,7 +79,9 @@ const World = (props) => {
   const addRecentData = useRecentData();
   const queryClient = useQueryClient();
   const [initialized, setInitialized] = useState(false);
-
+  const [labels, setLabels] = useState([]);
+  const { arcData } = state; // state.arcData 사용
+  
   const globeContainerStyle = {
     width: '100px',
     height: '100px'
@@ -97,6 +99,36 @@ const World = (props) => {
     blending: THREE.NormalBlending,
     side: THREE.FrontSide
   });
+
+  
+  useEffect(() => {
+    if (arcData && arcData[0]) {
+      const newLabels = arcData[0].map(arc => {
+        // 출발지 라벨
+        //console.log('arc', arc)
+        const srcLabel = arc.srcAirport ? {
+          lat: parseFloat(arc.srcAirport.lat),
+          lng: parseFloat(arc.srcAirport.lng),
+          label: `${arc.dstIata.location}`, // 국가 코드와 도시 이름 조합
+          color: 'lightgreen',
+          size: 1.5,
+        } : null;
+  
+        // 목적지 라벨
+        const dstLabel = arc.dstAirport ? {
+          lat: parseFloat(arc.dstAirport.lat),
+          lng: parseFloat(arc.dstAirport.lng),
+          label:'', // 국가 코드와 도시 이름 조합
+          color: 'red',
+          size: 1.5,
+        } : null;
+  
+        return [srcLabel, dstLabel].filter(label => label !== null);
+      }).flat();
+      setLabels(newLabels);
+    }
+  }, [arcData]);
+  
 
   useEffect(() => {
     if (data) {
@@ -154,8 +186,11 @@ const World = (props) => {
     const camera = globeEl.current.camera();
 
     const scene = globeEl.current.scene();
+
+
     let angle = 0;
     let cleanup
+    
     // console.log('globeEl', globeEl.current)
     if (globeEl.current) {
       cleanup = GlobeCloud(globeEl.current, state.globeRadius);
@@ -181,13 +216,9 @@ const World = (props) => {
 
         const currentTime = Date.now();
         const deltaTime = currentTime - lastUpdateTime.current;
-
+        
         renderer.clear();
         renderer.render(scene, camera);
-      
-
-       
-
       }
 
     
@@ -201,7 +232,7 @@ const World = (props) => {
   }, [globeEl.current]);
 
   useEffect(() => {
-    // console.log('gg')
+     console.log('gg')
     fetch('/renderSiem/js/ne_110m_admin_0_countries.geojson')
       .then(res => res.json())
       .then(countries => {
@@ -216,9 +247,10 @@ const World = (props) => {
   }, []);
 
   useEffect(() => {
-    console.log('resized')
+   
     const widgetRefwidth = props.widgetRef?.current?.clientWidth;
     const widgetRefheight = props.widgetRef?.current?.clientHeight;
+    console.log('resizedGlobe',initialized)
     if (widgetRefwidth && widgetRefheight) {
       dispatch({
         type: "SET_DIMENSIONS",
@@ -226,23 +258,25 @@ const World = (props) => {
         height: widgetRefheight
       });
     }
-  }, [props.widgetRef, props.isResized]);
-  return <div style={globeContainerStyle}>
+  }, [props.widgetRef, props.isResized , data]);
 
+
+  return <div style={globeContainerStyle}>
     <Globe
       showGlobe={true}
       ref={globeEl}
-      globeMaterial={globeMaterial}
+      
+      globeImageUrl="/renderSiem/css/images/earth-blue-marble.jpg"
       showAtmosphere={false}
       backgroundColor={'#00174A'}
       width={state.Width}
       height={state.Height}
-      polygonsData={state.polygonData}
-      polygonCapMaterial={polygonsMaterial}
-      polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
-      polygonCapColor={() => 'rgba(173, 216, 230, 0.3)'}
-      polygonStrokeColor={() => 'rgba(0, 191, 255, 0.8)'}
-      polygonAltitude={() => 0.007}
+      // polygonsData={state.polygonData}
+      // polygonCapMaterial={polygonsMaterial}
+      // polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
+      // polygonCapColor={() => 'rgba(173, 216, 230, 0.3)'}
+      // polygonStrokeColor={() => 'rgba(0, 191, 255, 0.8)'}
+      // polygonAltitude={() => 0.007}
       arcsData={state.arcData[0]}
       arcStartLat={d => d.srcAirport.lat}
       arcStartLng={d => d.srcAirport.lng}
@@ -252,9 +286,16 @@ const World = (props) => {
       arcCircularResolution={64}
       arcDashLength={0.3}// 애니메이션 선 길이
       arcDashGap={(0.01)} // 애니매이션 재생 gap
-      arcDashAnimateTime={(1500)} //애니매이션속도
-      arcAltitude={(d => 0.5)}
-
+      arcDashAnimateTime={(500)} //애니매이션속도
+      arcAltitude={(d => 1)}
+      labelsData={labels}
+        labelLat={d => d.lat}
+        labelLng={d => d.lng}
+        labelText={d => d.label}
+        labelColor={d => d.color}
+        labelSize={d => d.size}
+        labelDotRadius={1} // 점 크기를 0으로 설정하여 제거
+        labelAltitude={0} // Adjust as needed
     />
   </div>;
 };
