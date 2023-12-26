@@ -114,7 +114,8 @@ const fetchDashboardBarcolChart = async () => {
     const endpoint = "https://localhost:8081/reportdata";
     const params = {
       operator: "getBarColChartDashboard",
-      sql: "SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['c00000-zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"
+      sql: "SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"
+      ,cid : "c10000"
     };
   
     // const response = await axios.get(endpoint, { 
