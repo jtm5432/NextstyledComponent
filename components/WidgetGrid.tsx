@@ -12,7 +12,7 @@ import debounce from 'lodash/debounce';
 import { formatDate } from '../app/utils/TableFormatter';
 import LineChart from './organisms/Highchart/DashboardHighchart';
 import BarcolChart from './organisms/Highchart/BarcolHighchart';
-
+import D3Chart from './organisms/D3Chart';
 import HeaderModal from '../components/templates/HeaderModal';
 import DataSelectModal from '../components/organisms/DataSelectModal';
 
@@ -91,6 +91,8 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
         'Globe3D': { type: 'Globe3D', otherProp: 'value4' },
         'GlobeTable': { type: 'GlobeTable', otherProp: 'value5' },
         'GlobeTableSecond': { type: 'GlobeTableSecond', otherProp: 'value6' },
+        'D3Chart': { type: 'D3Chart', otherProp: 'value7' },
+
     });
     const [selectedWidgetKey, setSelectedWidgetKey] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -266,6 +268,17 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
 
                 )
             }
+            case 'D3Chart':{
+                const chartType = 'pie';
+                const initialChannel ='realtime';
+                return (
+                    <Styled.Widget ref={widgetRef}>
+                        <D3Chart chartType={chartType} initialChannel ={initialChannel} widgetRef={widgetRef} isResized={isResized} />
+                    </Styled.Widget>
+
+                )
+            }
+
             default: {
                 {/* Render the widget content here */ }
 
@@ -306,7 +319,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                 onDragStop={handleDragStop} // 메모이제이션된 핸들러 사용
 
             >
-                {(currentLayouts.lg || []).map((item) => (
+                {(currentLayouts.lg || []).map((item) => (  
                     <div key={item.i} id={item.i} onClick={() => handleWidgetSelect(item.i)}>
                         {renderWidget(item.i)}
                     </div>

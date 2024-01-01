@@ -73,7 +73,11 @@ const GlobeCloud = async (globe, globeRadius = 100) => {
 
 const World = (props) => {
   const globeEl = useRef();
-  const { data, error } = useSocketData('firewall');
+  const { data, error } = useSocketData(
+    'firewall', 
+    'me', 
+    { title: '방화벽 테스트', operator: 'firewall', period: 1, unit: '', ytitle: '항목', yformat: '%' }
+  );
   const [state, dispatch] = useReducer(reducer, initialState);
   const rtimestamp = Date.now();
   const addRecentData = useRecentData();

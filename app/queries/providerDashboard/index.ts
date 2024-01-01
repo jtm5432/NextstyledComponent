@@ -106,10 +106,7 @@ const getIndexlist = async () => {
   }
 };
 
-const getIndexlistquery = () =>{
 
-  return useQuery(['getIndexlist'], () => getIndexlist());  
-}
 const fetchDashboardBarcolChart = async () => {
     const endpoint = "https://localhost:8081/reportdata";
     const params = {
@@ -190,10 +187,16 @@ const saveDataToLocalStorage = async (data: SaveData): Promise<SaveData> => {
 
     return data; // 저장된 데이터 반환
 };
-const useDashboardLineChart = () => {
 
-    return useQuery(['dashboardLineChart'], () => fetchDashboardLineChart());
-}
+const fetchSearchData = async (searchParams) => {
+  const response = await axios.post('/api/search', searchParams);
 
-export { SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
+  if (response.status !== 200) {
+    throw new Error('Failed to fetch data');
+  }
+
+  return response.data;
+};
+
+export { fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
 

@@ -32,15 +32,16 @@ const client =  new opensearch2.Client({
       ]
     });
 
-    export default async function handler(req, res) {
-      const { index, body } = req.body;
-    
+    export default async function executeSearchQuery(index, queryDSL) {
       try {
-        const result = await client.search({ index, body })
-        console.log('result.body.aggregations.zhost_groups.buckets',body,result.body);
-        return res.status(200).json(result.body.aggregations);
+        const response = await client.search({
+          index,
+          body: queryDSL
+        });
+    
+        return response.body;
       } catch (error) {
-        console.error("Error executing search:", error);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error("Error executing search query:", error);
+        throw error;
       }
     }

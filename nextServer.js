@@ -34,14 +34,14 @@ server.use('/_next/webpack-hmr', (req, res, next) => {
 });
 const socketIoMiddleware = createProxyMiddleware('/myAppSocket/socket.io', {
   target: 'https://192.168.10.224/socket.io/',
-
+  debug: true,
   changeOrigin: true,
-  ws: req => req.originalUrl.startsWith('/myAppSocket/socket.io'),
-  logLevel: 'debug',
-  secure: false,  // This option checks if you trust the certificate (self-signed in this case)
-  ssl: httpsOptions
-});
-
+  ws: true,
+ secure: false,  // This option checks if you trust the certificate (self-signed in this case)
+  ssl: httpsOptions,
+  
+ });
+console.log('load',`${__dirname}/../../key.pem`)
 server.use('/myAppSocket/socket.io', socketIoMiddleware);
 
 server.use((req, res) => {

@@ -40,7 +40,6 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({ data, onClose, onSave
             },
         }
     );
-    console.log('formDatain', formData, data);
     const [selectedIconName, setSelectedIconName] = useState<string>('home'); // 선택된 아이콘의 이름을 저장
     /**
      * optionsArray는 selectOptions를 배열로 변환한 값입니다.
