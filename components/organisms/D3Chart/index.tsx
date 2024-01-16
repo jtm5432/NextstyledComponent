@@ -59,21 +59,21 @@ const D3Chart: React.FC<D3ChartProps> = ({ chartType, initialChannel, widgetRef,
         }
       };
       ;
-    const { data, isLoading, error } = useQuery(['searchData', searchParams], () => fetchSearchData(searchParams), {
+    const { data, isLoading } = useQuery(['searchData', searchParams], () => fetchSearchData(searchParams), {
         enabled: !!searchParams, // searchParams가 존재할 때만 쿼리를 실행합니다.
       });
     const [channel, setChannel] = useState(initialChannel);
     const chartRef = useRef<HTMLDivElement>(null);
-    // const { data: socketData, error } =  useSocketData(
+    // const { data: socketData } =  useSocketData(
     //     'connect', 
     //     'me', 
-    //     { mark: 'bar', stacked: true, operator: 'LogCountByHost', zhost: 'logmanager', period: 1, unit: '   ', ytitle: '호스트' },
+    //     { mark: 'bar', stacked: true, operator: 'LogCountByHost', zhost: 'logmanager',cid: ,period: 1, unit: '   ', ytitle: '호스트' },
     //   );
 
     // useEffect(() => {
     //     if (socketData) {
     //         console.log('getsocketData',socketData)
-    //         setData(socketData as any[]);
+    //         //setData(socketData as any[]);
     //     }
     // }, [socketData]);
 

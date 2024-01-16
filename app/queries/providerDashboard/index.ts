@@ -189,7 +189,7 @@ const saveDataToLocalStorage = async (data: SaveData): Promise<SaveData> => {
 };
 
 const fetchSearchData = async (searchParams) => {
-  const response = await axios.post('/api/search', searchParams);
+  const response = await axios.post('/api/axios', searchParams);
 
   if (response.status !== 200) {
     throw new Error('Failed to fetch data');

@@ -22,19 +22,20 @@ const useSocketData = <T>(
       console.log('socket connected', emitEventName, emitPayload);
     })
     socket.on(eventName, handleData);
-    socket.on('error', handleError);
-    socket.on("connect_error", (err) => {
-      console.log(`connect_error due to ${err.message}`);
-    });
+      console.log('eventName',eventName)
+      socket.on('error', handleError);
+      socket.on("connect_error", (err) => {
+        console.log(`connect_error due to ${err.message}`);
+      });
 
     // 데이터 요청
-    socket.emit('me', emitEventName, (response) => {
+    socket.emit( emitEventName, (response) => {
       console.log('Response from emit:', response);
     });
 
     // 클린업: 이벤트 리스너 제거
     return () => {
-      console.log("useSocketData return", eventName,emitPayload);
+      console.log("useSocketData return", eventName,emitPayload ,emitEventName );
       socket.off(eventName, handleData);
       socket.off('error', handleError);
     };

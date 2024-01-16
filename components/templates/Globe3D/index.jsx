@@ -76,7 +76,7 @@ const World = (props) => {
   const { data, error } = useSocketData(
     'firewall', 
     'me', 
-    { title: '방화벽 테스트', operator: 'firewall', period: 1, unit: '', ytitle: '항목', yformat: '%' }
+    { title: '방화벽 테스트', operator: 'firewall', period: 1, unit: '', ytitle: '항목', yformat: '%',cid:"c10000" }
   );
   const [state, dispatch] = useReducer(reducer, initialState);
   const rtimestamp = Date.now();
@@ -138,7 +138,7 @@ const World = (props) => {
     if (data) {
       const socketdata = JSON.parse(data);
       const dataVal = socketdata?.value ? JSON.parse(socketdata.value) : null;
-      // console.log('dataVal', dataVal)
+      console.log('dataVal', dataVal)
       if (dataVal) {
         const lat = dataVal.geo.ll[0];
         const lng = dataVal.geo.ll[1];
@@ -166,7 +166,7 @@ const World = (props) => {
         };
         addRecentData(routeinfo);
         const recentData = queryClient.getQueryData('recentData');
-       // console.log('recentData', recentData);
+        console.log('recentData', recentData);
         if (recentData && recentData.length > 1) {
           dispatch({
             type: "SET_DATA_VAL",

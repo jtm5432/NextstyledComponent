@@ -36,8 +36,9 @@ const socketIoMiddleware = createProxyMiddleware('/myAppSocket/socket.io', {
   target: 'https://192.168.10.224/socket.io/',
   debug: true,
   changeOrigin: true,
+  cid:'c10000',
   ws: true,
- secure: false,  // This option checks if you trust the certificate (self-signed in this case)
+   secure: false,  // This option checks if you trust the certificate (self-signed in this case)
   ssl: httpsOptions,
   
  });

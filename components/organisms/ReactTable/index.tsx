@@ -5,8 +5,8 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group';
 
 // StyledTable 컴포넌트의 props 타입을 정의합니다.
 interface StyledTableProps {
-    tableWidth: string | number;
-    tableHeight: string | number;
+    // tWidth: string | number;
+    // tHeight: string | number;
 }
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -25,7 +25,7 @@ const StyledTableRow = styled.tr`
   }
 `;
 const StyledTable = styled.div<StyledTableProps>`
-
+  
     table {
           border-collapse: collapse;
           
@@ -59,8 +59,6 @@ function ReactTableComponent({ data, width, height, columns }) {
     const tableWidth = width ? `${width}px` : '100%';
     const tableHeight = height ? `${height}px` : '100%';
     useEffect(() => {
-        const tableWidth = width ? `${width}px` : '100%';
-        const tableHeight = height ? `${height}px` : '100%';
         // 여기서 필요한 로직을 추가할 수 있습니다.
     }, [width, height]);
     const [rowsState, setRowsState] = useState(data);
@@ -78,7 +76,7 @@ function ReactTableComponent({ data, width, height, columns }) {
     //console.log('Table dimensions:', tableWidth, tableHeight);
 
     return (
-        <StyledTable tableWidth={tableWidth} tableHeight={tableHeight}>
+        <StyledTable>
             <table {...getTableProps()} style={{ width: tableWidth, maxHeight: tableHeight, borderCollapse: 'collapse', overflowY: 'auto' }}>
                 <thead>
                     {headerGroups.map(headerGroup => (
