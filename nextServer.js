@@ -33,22 +33,30 @@ server.use('/_next/webpack-hmr', (req, res, next) => {
   return handle(req, res);  // Next.js의 기본 핸들러에 위임합니다.
 });
 const socketIoMiddleware = createProxyMiddleware('/myAppSocket/socket.io', {
-  target: 'https://192.168.10.224/socket.io/',
+  target: 'https://192.168.10.224:8081',
   debug: true,
-  changeOrigin: true,
-  cid:'c10000',
-  ws: true,
+  ws: req => req.originalUrl.startsWith('/myAppSocket/socket.io'),
    secure: false,  // This option checks if you trust the certificate (self-signed in this case)
   ssl: httpsOptions,
+  pathRewrite: {
+    '^/myAppSocket/socket.io': '/socket.io', // Remove '/myAppSocket/socket.io' from the path
+  },
+  onProxyReq: (proxyReq, req, res) => {
+  //  console.log('Proxying request:', req.originalUrl);
+   // console.log('Request headers:', proxyReq.user);
+    // 여기서 필요한 다른 요청 정보를 로그로 남길 수 있습니다.
+  }
   
  });
 console.log('load',`${__dirname}/../../key.pem`)
 server.use('/myAppSocket/socket.io', socketIoMiddleware);
 
 server.use((req, res) => {
-  console.log('req.url',req.url)
-    const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
+  const cidFromHeader = req.headers['cid'];
+  // console.log('cidFromHeader',cidFromHeader)
+  //console.log('req.url',req)
+  const parsedUrl = parse(req.url, true);
+  handle(req, res, parsedUrl);
 });
 
   https

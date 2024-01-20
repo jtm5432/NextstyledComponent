@@ -12,10 +12,10 @@ export default async function handler(req, res) {
             params,
             httpsAgent: agent 
         });
-        console.log('response.data==================================================', response.data)
+        console.log('response.data==================================================',endpoint, response.headers)
         res.status(200).json(response.data);
     } catch (error) {
-        console.error("E-----------------------------rror in /api/axios:---------------------------------", error.message);
+       // console.error("-----------------------------Error in /api/axios:---------------------------------", endpoint);
         res.status(500).json({ error: 'Internal server error' });
     }
 }

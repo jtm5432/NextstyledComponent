@@ -50,13 +50,28 @@ const fetchDashboardLineChart = async () => {
     //   //  httpsAgent: agent 
     // });
     const response = await axios.post('/api/axios', { endpoint, params });
-       console.log('response.data',response)
+      
+       console.log('response.data', )
        if (response.status === 200) {
         return response.data;
       } else {
         throw new Error("Failed to fetch data");
       }
 };
+
+const getCidFromServer = async () => {
+  const endpoint = "https://localhost:8081/reportdata";
+
+  const response = await axios.post('/api/axios', { endpoint ,params : {operator: "getCID"}});
+
+  console.log('getCidFromServer',response)
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    throw new Error("Failed to fetch data");
+  }
+ // console.log('getCidFromServer',response)
+}
 function buildOpenSearchQuery({ 
   startTime, 
   endTime, 
@@ -171,7 +186,7 @@ const fetchSavedData = async (id) => {
   //if(id)params['id'] = id;
 
   const response = await axios.post('/api/axios', { endpoint, params });
-  console.log('response.datafetchSavedData',response)
+  console.log('response.datafetchSavedDatares',response)
   return response.data.results;
 }
 
@@ -198,5 +213,5 @@ const fetchSearchData = async (searchParams) => {
   return response.data;
 };
 
-export { fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
+export { getCidFromServer,fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
 

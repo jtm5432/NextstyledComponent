@@ -3,8 +3,10 @@ import React, { useState, useEffect, useRef} from 'react';
 import useSocketData from '../../../app/hooks/useSocketData';
 import {fetchSearchData} from '../../../app/queries/providerDashboard'
 import PieChart from '../../molecules/D3ChartTypes/PieChart';
+import LineChart from'../../molecules/D3ChartTypes/LineChart';
 import { useQuery } from 'react-query';
 export type ChartType = 'bar' | 'line' | 'pie'; 
+import ConfigButton from '../../organisms/ConfigButton';
 
 /**
  * D3Chart component
@@ -29,53 +31,52 @@ interface D3ChartProps {
  * @returns 
  */
 const D3Chart: React.FC<D3ChartProps> = ({ chartType, initialChannel, widgetRef, isResized }) => {
-    const searchParams = {
-        index: 'zen-{fw*',
-        queryDSL: {
-          size: 0, // 문서 자체는 반환하지 않음
-          query: {
-            bool: {
-              filter: [
-                { range: { '@timestamp': { gte: 'now-2m', lte: 'now' } } },
-                { term: { 'firewall.action': 'drop' } }
-              ]
-            }
-          },
-          aggs: {
-            dst_keyword_group: {
-              terms: {
-                field: 'firewall.dst.keyword',
-                size: 10 // 상위 10개 결과
-              },
-              aggs: {
-                avg_facility: {
-                  avg: {
-                    field: 'facility'
-                  }
-                }
-              }
-            }
-          }
-        }
-      };
-      ;
-    const { data, isLoading } = useQuery(['searchData', searchParams], () => fetchSearchData(searchParams), {
-        enabled: !!searchParams, // searchParams가 존재할 때만 쿼리를 실행합니다.
-      });
+    // const searchParams = {
+    //     index: 'zen-{fw*',
+    //     queryDSL: {
+    //       size: 0, // 문서 자체는 반환하지 않음
+    //       query: {
+    //         bool: {
+    //           filter: [
+    //             { range: { '@timestamp': { gte: 'now-2m', lte: 'now' } } },
+    //             { term: { 'firewall.action': 'drop' } }
+    //           ]
+    //         }
+    //       },
+    //       aggs: {
+    //         dst_keyword_group: {
+    //           terms: {
+    //             field: 'firewall.dst.keyword',
+    //             size: 10 // 상위 10개 결과
+    //           },
+    //           aggs: {
+    //             avg_facility: {
+    //               avg: {
+    //                 field: 'facility'
+    //               }
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   };
+    //   ;
+    // const { data, isLoading } = useQuery(['searchData', searchParams], () => fetchSearchData(searchParams), {
+    //     enabled: !!searchParams, // searchParams가 존재할 때만 쿼리를 실행합니다.
+    //   });
     const [channel, setChannel] = useState(initialChannel);
     const chartRef = useRef<HTMLDivElement>(null);
-    // const { data: socketData } =  useSocketData(
-    //     'connect', 
-    //     'me', 
-    //     { mark: 'bar', stacked: true, operator: 'LogCountByHost', zhost: 'logmanager',cid: ,period: 1, unit: '   ', ytitle: '호스트' },
-    //   );
-
-    // useEffect(() => {
-    //     if (socketData) {
-    //         console.log('getsocketData',socketData)
-    //         //setData(socketData as any[]);
-    //     }
-    // }, [socketData]);
+    const { data: socketData } =  useSocketData(
+        'LogCountByHost', 
+        { mark: 'bar', stacked: true, operator: 'LogCountByHost', zhost: 'logmanager',period: 1, unit: '   ', ytitle: '호스트' },
+      );
+    const [chartData,setchartData ] = useState();
+    useEffect(() => {
+        if (socketData) {
+            console.log('getsocketData',socketData)
+            //setData(socketData as any[]);
+        }
+    }, [socketData]);
 
 
     
@@ -94,18 +95,18 @@ const D3Chart: React.FC<D3ChartProps> = ({ chartType, initialChannel, widgetRef,
 
     const renderChart = () => {
         const { width, height } = widgetRef.current ? widgetRef.current.getBoundingClientRect() : { width: 0, height: 0 };
-        console.log('renderChart', data, width, height)
+        console.log('renderChart', socketData, width, height)
         switch (chartType) {
             case 'pie':
-                return <PieChart data={[data]} width={width} height={height} />;
+                return <PieChart data={[socketData]} width={width} height={height} />;
              default:
-                return null;
+                return <LineChart data={socketData} width={width} height={height} colorScale="blue" margin={{ top: 20, right: 20, bottom: 30, left: 40 }} />;
         }
     };
 
     return (
         <div ref={chartRef}>
-            {data ? renderChart() : <p>Loading data...</p>}
+            {socketData ? renderChart() : <p>Loading data...</p>}
         </div>
     );
 };

@@ -2,11 +2,12 @@ import React, { useEffect, useRef, useReducer, useMemo, useState } from 'react';
 import Globe from 'react-globe.gl';
 import { Canvas } from '@react-three/fiber';
 import { useThree, useFrame } from '@react-three/fiber';
-
+import {getCidFromServer} from '../../../app/queries/providerDashboard'
 import * as THREE from 'three';
 import useSocketData from '../../../app/hooks/useSocketData';
 import useRecentData from '../../../app/queries/providerDashboard/useRecentData';
 import { useQueryClient } from 'react-query';
+
 
 const initialState = {
   globeRadius: undefined,
@@ -72,12 +73,9 @@ const GlobeCloud = async (globe, globeRadius = 100) => {
 
 
 const World = (props) => {
+  //const cid = getCidFromServer();
   const globeEl = useRef();
-  const { data, error } = useSocketData(
-    'firewall', 
-    'me', 
-    { title: '방화벽 테스트', operator: 'firewall', period: 1, unit: '', ytitle: '항목', yformat: '%',cid:"c10000" }
-  );
+  const { data, error } = useSocketData('firewall',{ title: '방화벽 테스트', operator: 'firewall', period: 1, unit: '', ytitle: '항목', yformat: '%' } );
   const [state, dispatch] = useReducer(reducer, initialState);
   const rtimestamp = Date.now();
   const addRecentData = useRecentData();
@@ -85,7 +83,7 @@ const World = (props) => {
   const [initialized, setInitialized] = useState(false);
   const [labels, setLabels] = useState([]);
   const { arcData } = state; // state.arcData 사용
-  
+  //console.log('cid',cid)
   const globeContainerStyle = {
     width: '100px',
     height: '100px'
