@@ -12,6 +12,7 @@ interface BarColChartProps {
     height?: number;
     widgetRef?: React.RefObject<HTMLDivElement>;
     isResized?: React.ComponentState;
+    sqlQuery: string;
 }
 interface BarSeriesOptions {
     type: 'bar';
@@ -19,21 +20,22 @@ interface BarSeriesOptions {
     data: number[] | [string | number, number | null][] | Highcharts.PointOptionsObject[];
 }
 
-
-const BarColChart: React.FC<BarColChartProps> = ({ width = 100, height = 100, widgetRef, isResized }) => {
+const BarColChart: React.FC<BarColChartProps> = ({ width = 100, height = 100, widgetRef, isResized ,sqlQuery}) => {
     const [chartData, setChartData] = useState<Options | null>(null);
     const chartRef = useRef<Highcharts.Chart | null>(null);
-
+   // console.log('barColChart',chartData)
     interface ChartObj {
         data: { [key: string]: any[] };
         multi?: boolean;
         categories?: string[];
     }
-
+    console.log('sqlQuery',sqlQuery)
     const [chartWidth, setChartWidth] = useState<number>(width);
     const [chartHeight, setChartHeight] = useState<number>(height);
-    const { data, isLoading, refetch } = useQuery<string>('dashboardbarColChart', fetchDashboardBarcolChart, {
+    const { data, isLoading, refetch } = useQuery<string>(['dashboardBarColChart', sqlQuery], () => fetchDashboardBarcolChart(sqlQuery), {
+        refetchInterval: 10000,
         onSuccess: (rawData) => {
+            console.log('rawData',rawData)
             const chartObj: ChartObj = JSON.parse(rawData); // 또는 rawData를 ChartObj 타입으로 변환하는 적절한 함수 사용
 
             const seriesData: BarSeriesOptions[] = chartObj?.multi ?
@@ -53,7 +55,8 @@ const BarColChart: React.FC<BarColChartProps> = ({ width = 100, height = 100, wi
                 chart: {
                     type: 'bar',
                     width: chartWidth,
-                    height: chartHeight
+                    height: chartHeight,
+                    backgroundColor: 'transparent',
                 },
                 xAxis: {
                     categories: chartObj.categories

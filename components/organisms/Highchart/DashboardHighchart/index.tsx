@@ -13,103 +13,81 @@ interface LineChartProps {
     isResized?: React.ComponentState;
     linecharttype:'line'|'column'|'area'|'bar';
 }
-
-const LineChart: React.FC<LineChartProps> = ({ width = 100, height = 100 ,widgetRef,isResized,linecharttype = 'line'}) => {
+const LineChart: React.FC<LineChartProps> = ({
+    width = 100,
+    height = 100,
+    widgetRef,
+    isResized,
+    linecharttype = 'line'
+}) => {
     const [chartData, setChartData] = useState<Options | null>(null);
     const chartRef = useRef<Chart | null>(null);
-    //console.log('linechart22',chartData,chartRef)
-
-   // const ParentwidgetRef = useRef<HTMLDivElement>(widgetRef);
     const [chartWidth, setChartWidth] = useState<number>(width);
     const [chartHeight, setChartHeight] = useState<number>(height);
-    const { data, isLoading,refetch  } = useQuery<string>('dashboardLineChart', fetchDashboardLineChart, {  // data의 타입을 string으로 변경\
-        refetchInterval: 5000, // refetch the data every 5 seconds
-        onSuccess: (rawData: string) => {  // rawData의 타입을 string으로 변경
-           // console.log('rawData',rawData);
-            if (typeof rawData === 'string') {
-                const lines = rawData?.trim().split("\n");
-            
-                const headers = lines[0].split(",");
-            }
-            /**
-             * @description rawData를 파싱하여 데이터셋을 생성합니다.
-             * @param rawData  
-             */
+
+    const { isLoading, refetch } = useQuery<string>('dashboardLineChart', fetchDashboardLineChart, {
+        refetchInterval: 5000,
+        onSuccess: (rawData: string) => {
             let datasets;
-            if(typeof(rawData)==='string'){
-                datasets= parsedRowData(rawData);
-            }
-            else {
+            if (typeof(rawData) === 'string') {
+                datasets = parsedRowData(rawData);
+            } else {
                 datasets = rawData;
             }
+
             const transformedData: Options = {
                 chart: {
-                    width: chartWidth,  // 여기에 width를 설정
-                    height: chartHeight  // 여기에 height를 설정
+                    type: linecharttype,
+                    width: chartWidth,
+                    height: chartHeight,
+                    backgroundColor: 'transparent', 
                 },
                 xAxis: {
-                    categories: datasets[0]?.data.map(item => item.x) || [] , // 첫 번째 데이터셋에서 x 값들을 카테고리로 사용
-                    type: 'datetime',
-                    tickPositioner: function () {
-                        let positions: number[] = [];
-                        if (this.max && this.min) {
-                            let interval = Math.round((this.max - this.min) / 9); // 10개의 눈금을 위해 9로 나눔
-                            let tick = this.min;
-                            for (let i = 0; i < 10; i++) {
-                                positions.push(tick);
-                                tick += interval;
-                            }
-                        }
-                        return positions;
-                    },
-
+                    type: 'datetime'
                 },
-                plotOptions: {
-                    area: {
-                        fillOpacity: 0.5, // 영역의 채우기 불투명도 (0.0 - 1.0 사이의 값)
-                    },
+                yAxis: {
+                    title: {
+                        text: 'Value'
+                    }
                 },
                 series: datasets.map(dataset => ({
-                    type: linecharttype === 'line' ? 'line' : linecharttype,
+                    type: "line",
                     name: dataset.label,
-                    data: dataset.data.map(item => item.y)
+                    // item.x의 타입에 따라 적절한 처리를 적용
+                    data: dataset.data.map(item => {
+                        // item.x가 밀리초 단위의 타임스탬프인지 확인
+                        const xValue = typeof item.x === 'number' ? item.x : new Date(item.x).getTime();
+                        return [xValue, item.y];
+                    })
                 }))
             };
             
+
             setChartData(transformedData);
         }
     });
-    /**
-     * 차트 생성시 callback함수
-     * @param chart 
-     */
-    const handleChartCreated = (chart: Chart) => {
-   
-    };
-    /**
-     * resize관련 useEffect, 삭제 시에 리사이즈가 안된다.
-     */
+
     useEffect(() => {
-        console.log('instance',chartRef.current ,widgetRef?.current?.clientWidth);
-        const width = widgetRef?.current?.clientWidth;
-        const height = widgetRef?.current?.clientHeight;
-        if(width)setChartWidth(width);
-        if(height) setChartHeight(height);
-        refetch();
+        const updateChartSize = () => {
+            const width = widgetRef?.current?.clientWidth ?? chartWidth;
+            const height = widgetRef?.current?.clientHeight ?? chartHeight;
+            setChartWidth(width);
+            setChartHeight(height);
+            refetch();
+        };
 
-        
-    }, [chartRef.current, widgetRef, isResized]);
- 
+        updateChartSize();
+    }, [widgetRef, isResized]);
+    let handleChartCreated = (chart: Chart) => {    
 
+    }
     if (isLoading || !chartData) return <div>Loading...</div>;
-    
+
     return (
         <ChartContainer>
-            <BaseChart options={chartData} ref={chartRef} handleChartCreated={handleChartCreated} />
-          
-
+            <BaseChart options={chartData} ref={chartRef} handleChartCreated={(handleChartCreated)} />
         </ChartContainer>
-
-    )
+    );
 };
+
 export default React.memo(LineChart);

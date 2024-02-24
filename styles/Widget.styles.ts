@@ -3,7 +3,7 @@ import styled from 'styled-components';
 const Widget = styled.div`
     width: 100%;
     height: 100%;
-    background: white;
+    background: transparent;
     overflow-x: auto;
     overflow-y: hidden;
 `;

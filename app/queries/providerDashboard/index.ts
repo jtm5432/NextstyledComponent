@@ -122,7 +122,7 @@ const getIndexlist = async () => {
 };
 
 
-const fetchDashboardBarcolChart = async () => {
+const fetchDashboardBarcolChart = async (sqlQuery) => {
     const endpoint = "https://localhost:8081/reportdata";
     const params = {
       operator: "getBarColChartDashboard",

@@ -21,6 +21,8 @@ interface ChartProperties {
     otherProp: object | string;  // Adjusted to accommodate both object and string types
 }
 
+
+
 // 서버사이드 렌더링을 방지하기 위해 동적 임포트 사용
 const DynamicWorld = dynamic(
     () => import('./templates/Globe3D')
@@ -41,9 +43,9 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 
 
 const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
-   
+
     const widgetRefs = useRef({});
-    console.log('layouts', layouts,widgetRefs)
+    console.log('layouts', layouts, widgetRefs)
     const [currentLayouts, setCurrentLayouts] = useState(layouts);
     //const widgetRef = useRef<HTMLDivElement>(null);  // div에 대한 ref
     const [dimensions, setDimensions] = useState<{ [key: string]: { width: number, height: number } }>({});
@@ -97,6 +99,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     const [selectedWidgetKey, setSelectedWidgetKey] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedWidgetId, setSelectedWidgetId] = useState(null);
+
     const handleResizeStop = useCallback(
         (...args) => {
             lastArgsRef.current = args;
@@ -118,10 +121,10 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     };
     useEffect(() => {
         setCurrentLayouts(layouts);
-        
+
     }, [layouts]);
 
-    
+
     useEffect(() => {
         const handleWindowResize = () => {
             debouncedHandleResizeStop();
@@ -167,11 +170,13 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
 
         }
     };
-   useEffect(() => {
+
+   // setIsQueryBuilderModalOpen(false);
+    useEffect(() => {
         const resizeObserver = new ResizeObserver(entries => {
             entries.forEach(entry => {
                 const { width, height } = entry.contentRect;
-                const widgetKey : any = entry.target.getAttribute('id');
+                const widgetKey: any = entry.target.getAttribute('id');
                 setDimensions(prevDimensions => ({
                     ...prevDimensions,
                     [widgetKey]: { width, height }
@@ -196,21 +201,21 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     const renderWidget = (itemKey: string) => {
         //setIsResized(true);
         const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
-        
+
         // END: ed8c6549bwf9
         if (!widgetRefs.current[itemKey]) {
             widgetRefs.current[itemKey] = React.createRef();
         }
         const widgetRef = widgetRefs.current[itemKey];
         const chartInfo = chartInfoMap[itemKey] || { type: 'default' };
-        console.log('chartInfor', itemKey)
-        
+        console.log('chartInfor', chartInfo.type)
+
         switch (chartInfo.type) {
             case 'a':
                 return <Styled.WidgetCoral>위젯 A</Styled.WidgetCoral>;
             case 'b':
                 return <Styled.WidgetGreen>위젯 B</Styled.WidgetGreen>;
-            case 'c': {
+            case 'line': {
                 // const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
                 // const widgetRef = useRef<HTMLDivElement>(null); // 고유한 widgetRef 생성
 
@@ -225,6 +230,29 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                                 widgetRef={widgetRef}
                                 isResized={isResized}
                                 linecharttype={'area'}
+                            />
+
+                        </div>
+                    </Styled.Widget>
+                );
+            }
+
+            case 'd': {
+                // const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
+                // const widgetRef = useRef<HTMLDivElement>(null); // 고유한 widgetRef 생성
+
+                console.log('widgetDimension123', widgetDimensions);
+                return (
+                    <Styled.Widget ref={widgetRef}>
+                        <div style={{ width: '100%', height: '100%' }}>
+                            <BarcolChart
+                                width={widgetDimensions.width}
+                                height={widgetDimensions.height}
+                                key={itemKey}
+                                widgetRef={widgetRef}
+                                isResized={isResized}
+                                sqlQuery={"SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"}
+
                             />
 
                         </div>
@@ -268,12 +296,12 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
 
                 )
             }
-            case 'D3Chart':{
+            case 'D3Chart': {
                 const chartType = 'pie';
-                const initialChannel ='realtime';
+                const initialChannel = 'realtime';
                 return (
                     <Styled.Widget ref={widgetRef}>
-                        <D3Chart chartType={chartType} initialChannel ={initialChannel} widgetRef={widgetRef} isResized={isResized} />
+                        <D3Chart chartType={chartType} initialChannel={initialChannel} widgetRef={widgetRef} isResized={isResized} />
                     </Styled.Widget>
 
                 )
@@ -294,6 +322,8 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                                     key={itemKey}
                                     widgetRef={widgetRef}
                                     isResized={isResized}
+                                    sqlQuery={"SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"}
+
                                 />
                             </div>
                         </div>
@@ -319,7 +349,8 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                 onDragStop={handleDragStop} // 메모이제이션된 핸들러 사용
 
             >
-                {(currentLayouts.lg || []).map((item) => (  
+                
+                {(currentLayouts.lg || []).map((item) => (
                     <div key={item.i} id={item.i} onClick={() => handleWidgetSelect(item.i)}>
                         {renderWidget(item.i)}
                     </div>
@@ -334,7 +365,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                     onChange={(option, target) => handleChange(option, target)}
                 />
             </HeaderModal>
-
+  
         </>
     );
 };

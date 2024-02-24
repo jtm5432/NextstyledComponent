@@ -15,7 +15,7 @@ const theme = {
   colors: {
     primary: '#0070f3',
   },
-   ColorsetArray : ["red", "blue", "green", "yellow", "purple", "orange"]
+  ColorsetArray: ["red", "blue", "green", "yellow", "purple", "orange"],
 
 };
 /**

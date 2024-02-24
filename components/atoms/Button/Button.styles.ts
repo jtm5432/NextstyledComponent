@@ -5,7 +5,7 @@ import styled from 'styled-components';
  * 
  */
 interface ButtonProps {
-    variant?: 'ok' | 'cancel'; // 버튼의 종류 (확인 , 취소)
+    variant?: 'ok' | 'cancel' | 'primary'; // 버튼의 종류 (확인 , 취소)
 }
 
 export const StyledButton = styled.button<ButtonProps>`

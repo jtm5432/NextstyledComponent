@@ -8,14 +8,16 @@ const agent = new https.Agent({
 export default async function handler(req, res) {
     try {
         const { endpoint, params } = req.body;
+        console.log('params',params);
         const response = await axios.get(endpoint, { 
+         
             params,
             httpsAgent: agent 
         });
-        console.log('response.data==================================================',endpoint, response.headers)
+       // console.log('response.data==================================================',endpoint, response.headers)
         res.status(200).json(response.data);
     } catch (error) {
-       // console.error("-----------------------------Error in /api/axios:---------------------------------", endpoint);
+       // console.error("-----------------------------Error in /api/axios:---------------------------------", error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }

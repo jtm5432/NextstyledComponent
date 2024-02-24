@@ -11,7 +11,7 @@ import ConfigButton from '../../organisms/ConfigButton';
 /**
  * D3Chart component
  * @param {ChartType} chartType - The type of chart to render
- * @param {string} initialChannel - 사용할
+ * @param {string} initialChannel - 사용할 속성값들
  * @param {React.RefObject<HTMLDivElement>} widgetRef - The ref to the widget
  * @param {React.ComponentState} isResized - The state of the widget
  *  
@@ -96,11 +96,12 @@ const D3Chart: React.FC<D3ChartProps> = ({ chartType, initialChannel, widgetRef,
     const renderChart = () => {
         const { width, height } = widgetRef.current ? widgetRef.current.getBoundingClientRect() : { width: 0, height: 0 };
         console.log('renderChart', socketData, width, height)
+        if(!socketData) return <div>no data</div>
         switch (chartType) {
             case 'pie':
                 return <PieChart data={[socketData]} width={width} height={height} />;
              default:
-                return <LineChart data={socketData} width={width} height={height} colorScale="blue" margin={{ top: 20, right: 20, bottom: 30, left: 40 }} />;
+                return <LineChart  key={JSON.stringify(socketData)} data={[socketData]} width={width} height={height} colorScale="blue" margin={{ top: 20, right: 20, bottom: 30, left: 40 }} />;
         }
     };
 

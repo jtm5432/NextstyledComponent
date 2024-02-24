@@ -12,8 +12,10 @@ const handle = app.getRequestHandler();
 const PORT = 4000;
 
 const httpsOptions = {
-  key: fs.readFileSync(`${__dirname}/../../key.pem`),
-  cert: fs.readFileSync(`${__dirname}/../../cert.pem`),
+  // key: fs.readFileSync(`${__dirname}/../../key.pem`),
+  // cert: fs.readFileSync(`${__dirname}/../../cert.pem`),
+  key: fs.readFileSync(`/home/zeniuslog/LMS/key.pem`),
+  cert: fs.readFileSync(`/home/zeniuslog/LMS/cert.pem`),
 };
 
 
@@ -34,8 +36,7 @@ server.use('/_next/webpack-hmr', (req, res, next) => {
 });
 const socketIoMiddleware = createProxyMiddleware('/myAppSocket/socket.io', {
   target: 'https://192.168.10.224:8081',
-  debug: true,
-  ws: req => req.originalUrl.startsWith('/myAppSocket/socket.io'),
+   ws: true,
    secure: false,  // This option checks if you trust the certificate (self-signed in this case)
   ssl: httpsOptions,
   pathRewrite: {
@@ -53,13 +54,12 @@ server.use('/myAppSocket/socket.io', socketIoMiddleware);
 
 server.use((req, res) => {
   const cidFromHeader = req.headers['cid'];
-  // console.log('cidFromHeader',cidFromHeader)
+  console.log('cidFromHeader',cidFromHeader)
   //console.log('req.url',req)
   const parsedUrl = parse(req.url, true);
   handle(req, res, parsedUrl);
 });
-
-  https
+https
     .createServer(httpsOptions, server)
     .listen(PORT, (err) => {
       if (err) throw err;

@@ -9,13 +9,12 @@ interface LineChartData {
   x: number;
   y: number;
 }
-
 interface LineChartProps {
-  data: LineChartData[];
-  width: number;
-  height: number;
-  colorScale: string;
-  margin: { top: number; right: number; bottom: number; left: number };
+    data: any[]; // RawSocketData can be any type
+    width: number;
+    height: number;
+    colorScale: string;
+    margin: { top: number; right: number; bottom: number; left: number };
 }
 
 const LineChart: React.FC<LineChartProps> = ({ data, width, height, colorScale, margin }) => {
@@ -23,7 +22,7 @@ const LineChart: React.FC<LineChartProps> = ({ data, width, height, colorScale, 
 
   useEffect(() => {
     if (!data || data.length === 0) return;
-
+    console.log('LineChartdata', data)
     const svg = d3.select(ref.current);
     svg.selectAll("*").remove(); // Clear svg content before adding new elements
 

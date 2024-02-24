@@ -73,7 +73,8 @@ const GlobeCloud = async (globe, globeRadius = 100) => {
 
 
 const World = (props) => {
-  //const cid = getCidFromServer();
+ // const cid = getCidFromServer();
+ // console.log('cid',cid)
   const globeEl = useRef();
   const { data, error } = useSocketData('firewall',{ title: '방화벽 테스트', operator: 'firewall', period: 1, unit: '', ytitle: '항목', yformat: '%' } );
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -136,7 +137,7 @@ const World = (props) => {
     if (data) {
       const socketdata = JSON.parse(data);
       const dataVal = socketdata?.value ? JSON.parse(socketdata.value) : null;
-      console.log('dataVal', dataVal)
+     // console.log('dataVal', dataVal)
       if (dataVal) {
         const lat = dataVal.geo.ll[0];
         const lng = dataVal.geo.ll[1];
@@ -164,7 +165,7 @@ const World = (props) => {
         };
         addRecentData(routeinfo);
         const recentData = queryClient.getQueryData('recentData');
-        console.log('recentData', recentData);
+        // console.log('recentData', recentData);
         if (recentData && recentData.length > 1) {
           dispatch({
             type: "SET_DATA_VAL",
@@ -252,7 +253,6 @@ const World = (props) => {
    
     const widgetRefwidth = props.widgetRef?.current?.clientWidth;
     const widgetRefheight = props.widgetRef?.current?.clientHeight;
-    console.log('resizedGlobe',initialized)
     if (widgetRefwidth && widgetRefheight) {
       dispatch({
         type: "SET_DIMENSIONS",

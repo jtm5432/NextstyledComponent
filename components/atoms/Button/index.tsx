@@ -7,7 +7,7 @@ import { StyledButton } from './Button.styles';
  * - children: React.ReactNode - 버튼 내부에 표시할 내용
  */
 interface ButtonProps {
-    variant?: 'ok' | 'cancel'; // 버튼의 종류 (확인 , 취소)
+    variant?: 'ok' | 'cancel' |'primary'; // 버튼의 종류 (확인 , 취소)
     onClick?: () => void;
     children: React.ReactNode;
 }
