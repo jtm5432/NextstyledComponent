@@ -15,6 +15,8 @@ import BarcolChart from './organisms/Highchart/BarcolHighchart';
 import D3Chart from './organisms/D3Chart';
 import HeaderModal from '../components/templates/HeaderModal';
 import DataSelectModal from '../components/organisms/DataSelectModal';
+import D3Realtime from '../components/atoms/D3Chart/realTimeD3'
+import HoneycombChart from './organisms/Highchart/HoneycombChart';
 
 interface ChartProperties {
     type: string;
@@ -117,7 +119,6 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     );
     const handleWidgetSelect = (widgetId) => {
         setSelectedWidgetId(widgetId);
-
     };
     useEffect(() => {
         setCurrentLayouts(layouts);
@@ -231,7 +232,6 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                                 isResized={isResized}
                                 linecharttype={'area'}
                             />
-
                         </div>
                     </Styled.Widget>
                 );
@@ -262,7 +262,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
             case 'Globe3D': {
                 return (
                     <Styled.Widget ref={widgetRef}>
-                        <DynamicWorld widgetRef={widgetRef} isResized={isResized} />
+                        {/* <DynamicWorld widgetRef={widgetRef} isResized={isResized} /> */}
                     </Styled.Widget>
                 );
 
@@ -316,15 +316,9 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                     <Styled.Widget ref={widgetRef}>
                         <div onClick={() => handleWidgetClick(itemKey)}>
                             <div style={{ width: '100%', height: '100%' }}>
-                                <BarcolChart
-                                    width={widgetDimensions.width}
-                                    height={widgetDimensions.height}
-                                    key={itemKey}
-                                    widgetRef={widgetRef}
-                                    isResized={isResized}
-                                    sqlQuery={"SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"}
+                           <HoneycombChart>
 
-                                />
+                           </HoneycombChart>
                             </div>
                         </div>
                     </Styled.Widget>

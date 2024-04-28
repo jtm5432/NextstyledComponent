@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 
 console.log('Starting connection...');
 const socket = io('https://192.168.10.224:4000', {
-  path: '/myAppSocket/socket.io'
+  //path: '/myAppSocket/socket.io'
 });
 
 socket.on('connect', () => {

@@ -120,7 +120,26 @@ const getIndexlist = async () => {
     throw new Error("Failed to fetch data");
   }
 };
+const fetchDeepAr = async (sqlQuery) => {
+  const endpoint = "https://localhost:8081/reportdata";
+  const params = {
+    operator: "getModelList",
+    sql: "SELECT * FROM ['model']"
+    ,cid : "c00000"
+  };
 
+  // const response = await axios.get(endpoint, { 
+  //     params,
+  //     //httpsAgent: agent 
+  // });
+  const response = await axios.post('/api/axios', { endpoint, params });
+  console.log('response.data',response)
+  if (response.status === 200) {
+    return JSON.stringify(response.data);
+  } else {
+    throw new Error("Failed to fetch data");
+  }
+};
 
 const fetchDashboardBarcolChart = async (sqlQuery) => {
     const endpoint = "https://localhost:8081/reportdata";
@@ -213,5 +232,5 @@ const fetchSearchData = async (searchParams) => {
   return response.data;
 };
 
-export { getCidFromServer,fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
+export {fetchDeepAr, getCidFromServer,fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
 

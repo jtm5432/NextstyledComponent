@@ -35,7 +35,7 @@ server.use('/_next/webpack-hmr', (req, res, next) => {
   return handle(req, res);  // Next.js의 기본 핸들러에 위임합니다.
 });
 const socketIoMiddleware = createProxyMiddleware('/myAppSocket/socket.io', {
-  target: 'https://192.168.10.224:8081',
+  target: 'https://192.168.10.224',
    ws: true,
    secure: false,  // This option checks if you trust the certificate (self-signed in this case)
   ssl: httpsOptions,
