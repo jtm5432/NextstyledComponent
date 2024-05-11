@@ -4,6 +4,7 @@ import { hexbin as d3Hexbin } from 'd3-hexbin';
 import { useQuery } from 'react-query';
 import { fetchDeepAr } from '../../../../app/queries/providerDashboard';
 import { JsonParse } from '../../../../../../GLOBAL';
+import { MdSettings } from 'react-icons/md'; // Import the settings icon from Material Design
 
 interface DataPoint {
     x: number;
@@ -13,6 +14,7 @@ const HoneycombChart: React.FC = () => {
     const ref = useRef<SVGElement>(null);
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 }); // Default sizes
     const [chartData, setChartData] = useState<any>(null);
+    const [isSettingsOpen, setSettingsOpen] = useState(false); // 상태 관리를 위한 플래그
 
     // Update dimensions function
     const updateDimensions = () => {
@@ -31,7 +33,7 @@ const HoneycombChart: React.FC = () => {
         updateDimensions(); // Initial call
         return () => window.removeEventListener("resize", updateDimensions);
     }, []);
-    const { data, isLoading, refetch } = useQuery<string>('dashboardbarColChart', fetchDeepAr, {
+    const { data, isLoading, refetch } = useQuery<string>('fetchDeepAr', fetchDeepAr, {
         onSuccess: (rawData) => {
            // JsonParse(rawData);
             console.log('getHoneyCombErr',JSON.parse(rawData))
@@ -44,6 +46,10 @@ const HoneycombChart: React.FC = () => {
             console.log('getHoneyCombErr',err)
         }
     });
+    const toggleSettings = () => {
+        setSettingsOpen(!isSettingsOpen); // 설정 창 토글
+    };
+
     // Generate Dummy Data
     const generateDummyData = (width: number, height: number, hexRadius: number, padding: number): DataPoint[] => {
         const data: DataPoint[] = [];
@@ -108,13 +114,35 @@ const HoneycombChart: React.FC = () => {
                         const displayText = `Data value: ${dstring}`;
                         alert(displayText);
                     } else {
-                        alert("No data available for this bin.");
+                        //alert("No data available for this bin.");
                     }
                 });
+            
         }
     }, [dimensions , chartData]);
-
-    return <svg ref={ref} style={{ width: '100%', height: '100%' }} />;
+    return (
+        <>
+            {isSettingsOpen && (
+                <div>
+                    <h4>Chart Settings</h4>
+                    <button onClick={toggleSettings}>Close Settings</button>
+                </div>
+            )}
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                <svg ref={ref} style={{ width: '100%', height: '100%' }} />
+                <MdSettings
+                    style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        cursor: 'pointer',
+                        fontSize: '24px'
+                    }}
+                    onClick={toggleSettings}
+                />
+            </div>
+        </>
+    );
 };
 
 export default HoneycombChart;

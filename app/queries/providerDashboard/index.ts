@@ -1,12 +1,11 @@
 import QueryQueueManager from './QueryQueueManager';
 import { useQuery } from 'react-query';
 import {SaveData} from '../../../types/dashboardTypes';
-
 import axios from 'axios';
-const PROVIDER_NAME = 'providerDashboard';
 
+const PROVIDER_NAME = 'providerDashboard';
 const addQueryToQueue = (endpoint: string, params?: Record<string, any>) => {
-    
+  
     return new Promise((resolve, reject) => {
         const task = async () => {
             try {
@@ -16,7 +15,6 @@ const addQueryToQueue = (endpoint: string, params?: Record<string, any>) => {
                 reject(error); // 에러가 발생하면 프로미스를 reject 합니다.
             }
         };
-
         QueryQueueManager.enqueue(PROVIDER_NAME, endpoint, task);
     });
 };
@@ -61,9 +59,7 @@ const fetchDashboardLineChart = async () => {
 
 const getCidFromServer = async () => {
   const endpoint = "https://localhost:8081/reportdata";
-
   const response = await axios.post('/api/axios', { endpoint ,params : {operator: "getCID"}});
-
   console.log('getCidFromServer',response)
   if (response.status === 200) {
     return response.data;
@@ -99,7 +95,6 @@ function buildOpenSearchQuery({
   query.aggs[aggField] = {
     [aggType]: { field: aggFieldName }
   };
-
   return query;
 }
 const getIndexlist = async () => {
@@ -190,8 +185,6 @@ const SavegridLayouts = async ({
     } else {
       throw new Error("Failed to fetch data");
     }
-
-
 }
 const fetchSavedData = async (id) => {
 

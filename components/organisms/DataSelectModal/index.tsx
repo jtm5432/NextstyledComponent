@@ -7,8 +7,9 @@ import { iconsData } from '../../../app/IconData';
 import { useQuery } from 'react-query';
 import { getIndexlist } from '../../../app/queries/providerDashboard';
 import DropDown from '../../molecules/DropDown';
-import QueryModal from '../QueryBuilderModal';
+// import QueryModal from '../QueryBuilderModal';
 import { RuleGroupType } from 'react-querybuilder';
+import QueryBuilderComponent from '../QueryBuilder';
 
 interface DataSelectModalProps {
   data: { [key: string]: string };
@@ -64,19 +65,11 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({ data, onClose, onSave
     setIsQueryBuilderModalOpen(!isQueryBuilderModalOpen);
   };
 
-  if (isQueryBuilderModalOpen) {
-    return (
-      <QueryModal
-        isOpen={true}
-        onClose={() => setIsQueryBuilderModalOpen(false)}
-        onSave={(query: RuleGroupType) => {
-          setCurrentQueryBuilderQuery(query);
-          setIsQueryBuilderModalOpen(false);
-        }}
-        initialQuery={currentQueryBuilderQuery || undefined}
-      />
-    );
-  }
+  // if (isQueryBuilderModalOpen) {
+  //   return (
+  //     <QueryBuilder/>
+  //   );
+  // }
 
   return (
     <div>
@@ -90,6 +83,7 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({ data, onClose, onSave
         height="400px"
         onOptionSelected={handleOptionSelect}
       />
+{/*       
       {isIconSelectorOpen && (
         <IconSelector
           icons={Object.entries(iconsData).map(([key, value]) => ({
@@ -107,7 +101,9 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({ data, onClose, onSave
           value={typeof value === 'object' ? '' : value}
           onChange={(newValue) => handleInputChange(key, newValue)}
         />
-      ))}
+      ))} */}
+
+      <QueryBuilderComponent initialQuery={[]} fields={[]}/>
       <Button variant="primary" onClick={toggleQueryBuilderModal}>쿼리 빌더 열기</Button>
       <Button variant="ok" onClick={handleSaveClick}>Save</Button>
       <Button variant="cancel" onClick={onClose}>Close</Button>
