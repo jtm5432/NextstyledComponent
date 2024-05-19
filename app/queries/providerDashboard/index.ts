@@ -194,6 +194,7 @@ const fetchSavedData = async (id) => {
     operator: "searchDoc",
     index:"nextdashboard",
     
+    
   };
   //if(id)params['id'] = id;
 
@@ -201,7 +202,31 @@ const fetchSavedData = async (id) => {
   console.log('response.datafetchSavedDatares',response)
   return response.data.results;
 }
+const saveQueryDsl = async (id,queryDSLParams) => {
+  if(!id)id = Date.now();
+  const endpoint = "https://localhost:8081/reportdata";
+  const params = {
+    operator:"saveQueryDsl",
+    params : queryDSLParams,
+    id:id
+  }
+  const response = await axios.post('/api/axios', { endpoint, params });
+  console.log('saveQueryDsl',response)
+  return response
+}
+const SearchByQueryDSL = async (searchParams) => {
+  searchParams = JSON.stringify(searchParams)
+  const endpoint = "https://localhost:8081/reportdata";
+  const params = {
+    operator: "searchParams",
+    params : searchParams,
+    cid : "c00000"
 
+  };
+  
+  const response = await axios.post('/api/axios', { endpoint, params });
+  return response; // 저장된 데이터 반환
+}
 const saveDataToLocalStorage = async (data: SaveData): Promise<SaveData> => {
   //localStorage.setItem('data', JSON.stringify(data));
   
@@ -210,9 +235,10 @@ const saveDataToLocalStorage = async (data: SaveData): Promise<SaveData> => {
     operator: "modifyDoc",
     param : data,
   };
+  const response = await axios.post('/api/axios', { endpoint, params });
 
 
-    return data; // 저장된 데이터 반환
+    
 };
 
 const fetchSearchData = async (searchParams) => {
@@ -225,5 +251,18 @@ const fetchSearchData = async (searchParams) => {
   return response.data;
 };
 
-export {fetchDeepAr, getCidFromServer,fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
+const getFeildBYName = async (indexName) => {
+  const endpoint = "https://localhost:8081/reportdata";
+  const params = {
+    index :indexName,
+    operator :  "getFieldbyIndex",
+    cid:"c00000"
+
+  }
+  const response = await axios.post('/api/axios', { endpoint, params });
+  console.log('response.getFeildBYName',response)
+  return response.data;
+}
+
+export {fetchDeepAr, saveQueryDsl,SearchByQueryDSL,getFeildBYName , getCidFromServer,fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
 

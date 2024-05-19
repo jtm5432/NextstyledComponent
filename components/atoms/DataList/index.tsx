@@ -1,22 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-const DatalistInput = ({ field, value, onChange ,options}) => {
+const DatalistInput = ({ value, onChange, options, inputId }) => {
+  const [inputValue, setInputValue] = useState(value || '');
+  const [sortedOptions, setSortedOptions] = useState(options);
 
+  const dataListId = `datalist-${Math.random().toString(36).substr(2, 9)}`;
 
-  const dataListId = `datalist-${field.replace(/[\W_]+/g, '-')}`;
+  useEffect(() => {
+    const sorted = [...options].sort((a, b) => {
+    
+      return 0;
+    });
+    console.log('sortedOptions',sortedOptions)
+    setSortedOptions(sorted);
+  }, [inputValue, options]);
+
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    onChange(newValue);
+  };
 
   return (
     <div>
       <input
         type="text"
         list={dataListId}
-        value={value}
-        onChange={e => onChange(e.target.value)}
+        value={inputValue}
+        onChange={handleInputChange}
         style={{ width: '100%' }}
-      />
+        id={inputId}      />
       <datalist id={dataListId}>
-        {options[field]?.map(option => (
-          <option key={option} value={option} />
+        {sortedOptions.map((option) => (
+          <option key={option.id} value={option.value} />
         ))}
       </datalist>
     </div>

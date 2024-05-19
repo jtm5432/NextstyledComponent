@@ -5,7 +5,7 @@ import Icon from '../../atoms/Icon';
 import IconSelector from '../../molecules/IconSelector';
 import { iconsData } from '../../../app/IconData';
 import { useQuery } from 'react-query';
-import { getIndexlist } from '../../../app/queries/providerDashboard';
+import { getIndexlist , getFeildBYName } from '../../../app/queries/providerDashboard';
 import DropDown from '../../molecules/DropDown';
 // import QueryModal from '../QueryBuilderModal';
 import { RuleGroupType } from 'react-querybuilder';
