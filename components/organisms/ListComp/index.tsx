@@ -5,9 +5,9 @@ const SavedQueriesComponent = ({ savedQueries, onSelect, onDelete, onEdit }) => 
     <div>
       <h3>Saved Queries</h3>
       <ul>
-        {savedQueries.map(query => (
+        {savedQueries&&savedQueries.map(query => (
           <li key={query.id}>
-            {query.name}
+            {query['_source'].name}
             <button onClick={() => onSelect(query)}>Load</button>
             <button onClick={() => onEdit(query)}>Edit</button>
             <button onClick={() => onDelete(query.id)}>Delete</button>

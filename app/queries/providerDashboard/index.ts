@@ -2,6 +2,7 @@ import QueryQueueManager from './QueryQueueManager';
 import { useQuery } from 'react-query';
 import {SaveData} from '../../../types/dashboardTypes';
 import axios from 'axios';
+import { json } from 'body-parser';
 
 const PROVIDER_NAME = 'providerDashboard';
 const addQueryToQueue = (endpoint: string, params?: Record<string, any>) => {
@@ -29,7 +30,7 @@ const fetchGridData = async (gridId) => {
 };
 
 const useGridData = (gridId: string) => {
-    return useQuery(['gridData', gridId], () => fetchGridData(gridId));
+    return useQuery(['gridData', gridId], () => fetchGridData(gridId)); 
 };
 
 //  const executeQueries = () => {
@@ -202,12 +203,24 @@ const fetchSavedData = async (id) => {
   console.log('response.datafetchSavedDatares',response)
   return response.data.results;
 }
+const loadQueryDsl = async (id) => {
+  const endpoint = "https://localhost:8081/reportdata";
+  const params = {
+    operator:"getQueryDsl",
+    id:id
+  }
+  const response = await axios.post('/api/axios', { endpoint, params });
+  console.log('loadQueryDsl',response.data)
+  return response.data
+}
 const saveQueryDsl = async (id,queryDSLParams) => {
   if(!id)id = Date.now();
   const endpoint = "https://localhost:8081/reportdata";
+  
+  const paramsString =  JSON.stringify(queryDSLParams)
   const params = {
     operator:"saveQueryDsl",
-    params : queryDSLParams,
+    params : paramsString,
     id:id
   }
   const response = await axios.post('/api/axios', { endpoint, params });
@@ -264,5 +277,5 @@ const getFeildBYName = async (indexName) => {
   return response.data;
 }
 
-export {fetchDeepAr, saveQueryDsl,SearchByQueryDSL,getFeildBYName , getCidFromServer,fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
+export {fetchDeepAr, saveQueryDsl,SearchByQueryDSL,loadQueryDsl ,getFeildBYName , getCidFromServer,fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
 

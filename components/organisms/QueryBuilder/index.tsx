@@ -3,7 +3,7 @@ import { QueryBuilder, formatQuery } from 'react-querybuilder';
 import 'react-querybuilder/dist/query-builder.css';
 import DatalistInput from '../../atoms/DataList';
 import { useQuery } from 'react-query';
-import { getFeildBYName, SearchByQueryDSL, saveQueryDsl } from '../../../app/queries/providerDashboard';
+import { getFeildBYName, SearchByQueryDSL, saveQueryDsl,loadQueryDsl } from '../../../app/queries/providerDashboard';
 import { AxiosResponse } from 'axios';
 import SavedQueriesComponent from '../ListComp';
 
@@ -59,7 +59,14 @@ const QueryBuilderComponent = () => {
   const [fieldData, setFieldData] = useState<FieldResponse[]>([]);
   const queryRef = useRef<Query>(initialQuery);
   const [queryName, setQueryName] = useState<string>(''); // 쿼리 이름 상태 추가
-  const [savedQueries, setSavedQueries] = useState([]);
+
+  /**
+   * 저장된 쿼리 리스트
+   */
+  const { data: savedQueries, refetch: refetchSavedQueries } = useQuery(['loadQueryDsl'], () => loadQueryDsl());
+
+  const queryBuilderRef = useRef(null); // QueryBuilder 인스턴스를 참조하기 위해 useRef 사용
+
   const [showSavedQueries, setShowSavedQueries] = useState(false); // 쿼리 리스트 
 
   const allFields: Field[] = [
@@ -121,7 +128,7 @@ const QueryBuilderComponent = () => {
     try {
       //const savedQueries = await loadQueries();  // 예: 서버로부터 저장된 쿼리 리스트를 불러옵니다.
       let savedQueries = [];
-      console.log("Saved queries loaded successfully:", savedQueries);
+      //console.log("Saved queries loaded successfully:", savedQueries);
 
       // 사용자에게 저장된 쿼리 리스트를 보여주고, 새로 저장하거나 기존의 것을 덮어쓸지 선택하게 함
       const queryNameToSave = prompt('Enter the name of the query to save:');
@@ -199,6 +206,7 @@ const QueryBuilderComponent = () => {
     const queryDSLParams = {
       name : queryNameToSave,
       queryDsl : formattedQuery,
+      QueryBuilderFormat : rawQuery,
 
     }
     const id = Date.now();
@@ -223,6 +231,55 @@ const QueryBuilderComponent = () => {
   const handleEditQuery = () => {
 
   }
+  /* dsl query = > querybuilder format 변환함수. 에러가 많아서 비활성화
+  const convertElasticsearchDSLToQueryBuilder = (dsl) => {
+    if (dsl.queryDsl) {
+      dsl = dsl.queryDsl;
+    } else {
+      return { combinator: 'and', rules: [] };
+    }
+  
+    const convertRule = (rule) => {
+      if (rule.bool) {
+        return {
+          combinator: rule.bool.must ? 'and' : 'or',
+          rules: (rule.bool.must || rule.bool.should || rule.bool.must_not || []).map(convertRule),
+        };
+      } else {
+        const field = Object.keys(rule)[0];
+        const condition = rule[field];
+        if (condition.match) {
+          return { field, operator: '=', value: condition.match[field] };
+        } else if (condition.range) {
+          const rangeKey = Object.keys(condition.range[field])[0];
+          const operatorMap = {
+            lt: '<',
+            lte: '<=',
+            gt: '>',
+            gte: '>='
+          };
+          const operator = operatorMap[rangeKey] || '=';
+          return { field, operator, value: condition.range[field][rangeKey] };
+        } else if (condition.match_phrase) {
+          return { field, operator: 'contains', value: condition.match_phrase[field] };
+        } else if (condition.prefix) {
+          return { field, operator: 'begins_with', value: condition.prefix[field] };
+        } else if (condition.wildcard) {
+          return { field, operator: 'ends_with', value: condition.wildcard[field].replace('*', '') };
+        } else if (condition.bool && condition.bool.must_not) {
+          return { field, operator: '!=', value: condition.bool.must_not.match[field] };
+        }
+      }
+    };
+  
+    const rules = (dsl.bool.must || dsl.bool.should || dsl.bool.must_not || []).map(convertRule);
+    return {
+      combinator: dsl.bool.must ? 'and' : dsl.bool.should ? 'or' : 'and',
+      rules: rules.filter(Boolean), // Ensure we remove any undefined rules
+    };
+  };
+  */
+  
   const onRetrieve = async (format: string) => {
     let formattedQuery;
     if (format === 'elasticsearch') {
@@ -306,6 +363,7 @@ const QueryBuilderComponent = () => {
       ) : (
         <div>
           <QueryBuilder
+            ref={queryBuilderRef} 
             fields={fieldData}
             query={queryState}
             onQueryChange={handleQueryChange}
@@ -314,7 +372,12 @@ const QueryBuilderComponent = () => {
           {showSavedQueries && (
             <SavedQueriesComponent
               savedQueries={savedQueries}
-              onSelect={(query) => console.log('Query selected:', query)}
+              onSelect={(query) => {
+                //const queryBuilderQuery = convertElasticsearchDSLToQueryBuilder(query._source);
+                console.log('Query selected:', query)
+
+                 setQueryState(query._source.QueryBuilderFormat);
+              }}  
               onDelete={(id) => console.log('Query deleted:', id)}
               onEdit={(query) => console.log('Query edited:', query)}
             />
