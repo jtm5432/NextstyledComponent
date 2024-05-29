@@ -1,13 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import ResizeHandle, { Responsive, WidthProvider } from 'react-grid-layout';
+import { Responsive, WidthProvider } from 'react-grid-layout';
 import dynamic from 'next/dynamic';
 import RecentDataTable from './templates/GlobeTable';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { LayoutType, LayoutsProps } from '../types/WidgetGridTypes';
 import Styled from '../styles/Widget.styles';
-import { useQuery } from 'react-query';
-import { fetchDashboardLineChart } from '../app/queries/providerDashboard';
 import debounce from 'lodash/debounce';
 import { formatDate } from '../app/utils/TableFormatter';
 import LineChart from './organisms/Highchart/DashboardHighchart';
@@ -15,15 +13,16 @@ import BarcolChart from './organisms/Highchart/BarcolHighchart';
 import D3Chart from './organisms/D3Chart';
 import HeaderModal from '../components/templates/HeaderModal';
 import DataSelectModal from '../components/organisms/DataSelectModal';
-import D3Realtime from '../components/atoms/D3Chart/realTimeD3'
 import HoneycombChart from './organisms/Highchart/HoneycombChart';
+import { useRecoilValue, useRecoilState } from 'recoil';
+import { chartInfoMapState } from '../app/state/chartState';
+import { CurrentLayoutState } from '../app/state/CurrentLayout';
+import QueryDslDataTable from './templates/QueryDslTable';
 
 interface ChartProperties {
     type: string;
     otherProp: object | string;  // Adjusted to accommodate both object and string types
 }
-
-
 
 // 서버사이드 렌더링을 방지하기 위해 동적 임포트 사용
 const DynamicWorld = dynamic(
@@ -39,68 +38,22 @@ const DynamicWorld = dynamic(
     }
 );
 
-//import Globe3D from './organisms/Globe3D';
-
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-
 const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
-
     const widgetRefs = useRef({});
-    console.log('layouts', layouts, widgetRefs)
-    const [currentLayouts, setCurrentLayouts] = useState(layouts);
-    //const widgetRef = useRef<HTMLDivElement>(null);  // div에 대한 ref
+    console.log('layouts', layouts, widgetRefs);
+    const [currentLayouts, setCurrentLayouts] = useRecoilState(CurrentLayoutState);
     const [dimensions, setDimensions] = useState<{ [key: string]: { width: number, height: number } }>({});
     const lastArgsRef = useRef<any[]>([]);
     const [isResized, setIsResized] = useState(false);
     const debouncedHandleResizeStop = debounce(() => {
         setIsResized(prev => !prev);
-
     }, 200);
-    const [chartInfoMap, setChartInfoMap] = useState<Record<string, ChartProperties>>({
-        'a': {
-            type: 'line', otherProp: {
-                startTime: '2023-01-01T11:58:00Z',
-                endTime: '2023-01-01T12:00:00Z',
-                actionField: 'firewall.action',
-                actionValue: 'drop',
-                aggField: 'firewall.dst.keyword',
-                aggType: 'avg',
-                aggFieldName: 'facility'
-            }
-        },
-        'b': {
-            type: 'bar', otherProp: {
-                startTime: '2023-01-01T11:58:00Z',
-                endTime: '2023-01-01T12:00:00Z',
-                actionField: 'firewall.action',
-                actionValue: 'drop',
-                aggField: 'firewall.dst.keyword',
-                aggType: 'avg',
-                aggFieldName: 'facility'
-            }
-        },
-        'c': {
-            type: 'bar', otherProp: {
-                startTime: '2023-01-01T11:58:00Z',
-                endTime: '2023-01-01T12:00:00Z',
-                actionField: 'firewall.action',
-                actionValue: 'drop',
-                aggField: 'firewall.dst.keyword',
-                aggType: 'avg',
-                aggFieldName: 'facility'
-            }
-        },
-        'd': { type: 'd', otherProp: 'value3' },
-        'Globe3D': { type: 'Globe3D', otherProp: 'value4' },
-        'GlobeTable': { type: 'GlobeTable', otherProp: 'value5' },
-        'GlobeTableSecond': { type: 'GlobeTableSecond', otherProp: 'value6' },
-        'D3Chart': { type: 'D3Chart', otherProp: 'value7' },
-
-    });
+    const [chartInfoMap, setChartInfoMap] = useRecoilState(chartInfoMapState);
     const [selectedWidgetKey, setSelectedWidgetKey] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedWidgetId, setSelectedWidgetId] = useState(null);
+   // const [chartInfoMap, setChartInfoMap] = useRecoilState(chartInfoMapState);
 
     const handleResizeStop = useCallback(
         (...args) => {
@@ -112,24 +65,19 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
 
     const handleDragStop = useCallback(
         (layout, oldItem, newItem) => {
-            // 드래그가 끝났을 때 호출되는 코드
-            setGridLayout(layout);
+            //setGridLayout(layout);
         },
         [setGridLayout]
     );
-    const handleWidgetSelect = (widgetId) => {
-        setSelectedWidgetId(widgetId);
-    };
+
     useEffect(() => {
+        console.log('layoutchange',layouts)
         setCurrentLayouts(layouts);
-
     }, [layouts]);
-
 
     useEffect(() => {
         const handleWindowResize = () => {
             debouncedHandleResizeStop();
-            // 여기에 윈도우 크기가 변경될 때 원하는 로직을 추가
         };
 
         window.addEventListener('resize', handleWindowResize);
@@ -138,41 +86,57 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
             window.removeEventListener('resize', handleWindowResize);
         };
     }, []);
-    /**
-     * 모달 관련 로직
-     * @param widgetData 
-     */
+    useEffect(() => {
+        if (currentLayouts && chartInfoMap.recentQuery &&chartInfoMap.recentQuery.type ) {
+            const widgetIndex = currentLayouts.lg.findIndex(e => e.i === selectedWidgetKey);
+            if (widgetIndex !== -1) {
+                // 기존 객체를 복사하고 ChartInfo 속성을 추가합니다.
+                const updatedWidget = { ...currentLayouts.lg[widgetIndex], ChartInfo: chartInfoMap.recentQuery };
+                console.log('widgetIndex',currentLayouts.lg[widgetIndex],chartInfoMap.recentQuery)
+                // layouts.lg 배열에서 원래 객체를 교체합니다.
+                const updatedLgArray = [
+                    ...currentLayouts.lg.slice(0, widgetIndex),
+                    updatedWidget,
+                    ...currentLayouts.lg.slice(widgetIndex + 1)
+                ];
+    
+                // layouts 객체를 복사하고 lg 배열을 업데이트합니다.
+                const updatedLayouts = {
+                    ...currentLayouts,
+                    lg: updatedLgArray
+                };
+              //  layouts.lg=updatedLayouts;
+                setCurrentLayouts(updatedLayouts);
+                console.log('chartInfoMap has changed:', updatedWidget, chartInfoMap);
+            }
+        }
+    }, [chartInfoMap, layouts, selectedWidgetKey, setCurrentLayouts]);
+    
+
     const handleWidgetClick = (widgetData) => {
-        setSelectedWidgetKey(widgetData); // Assuming widgetData contains all necessary info about the widget
+        console.log('handleWidgetClick',widgetData)
+      
         setIsModalOpen(true);
+        setSelectedWidgetKey(widgetData);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedWidgetKey(null);
     };
-    /**
-     * 모달 저장 버튼 클릭시
-     */
-    const handleSave = () => {
-        //setCurrentLayouts
-    }
-    /*
-    * 모달에서 값이 수정될때 
-    */
-    const handleChange = (option, target) => {
-        // 기존 상태를 복사하고 특정 키의 값을 업데이트
-        if (selectedWidgetId) {
-            console.log('chartInfoMap', chartInfoMap);
-            const chartInfoMapTemp: Record<string, ChartProperties> = { ...chartInfoMap }; // Create a copy of chartInfoMap
-            chartInfoMapTemp[selectedWidgetId] = chartInfoMapTemp[option];
-            setChartInfoMap(chartInfoMapTemp);
-            console.log('chartInfoMap2', chartInfoMap, currentLayouts);
 
+    const handleSave = () => {
+      //  layouts.lg=currentLayouts;
+        setGridLayout(currentLayouts.lg);
+        setIsModalOpen(false);
+    };
+
+    const handleChange = (option) => {
+        if (selectedWidgetKey) {
+            // 상태 업데이트 로직
         }
     };
 
-   // setIsQueryBuilderModalOpen(false);
     useEffect(() => {
         const resizeObserver = new ResizeObserver(entries => {
             entries.forEach(entry => {
@@ -199,28 +163,23 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
             });
         };
     }, []);
-    const renderWidget = (itemKey: string) => {
-        //setIsResized(true);
+
+    const renderWidget = (itemKey: string, QuerryInfo:Array = {}) => {
         const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
 
-        // END: ed8c6549bwf9
         if (!widgetRefs.current[itemKey]) {
             widgetRefs.current[itemKey] = React.createRef();
         }
         const widgetRef = widgetRefs.current[itemKey];
         const chartInfo = chartInfoMap[itemKey] || { type: 'default' };
-        console.log('chartInfor', chartInfo.type)
-
-        switch (chartInfo.type) {
+        console.log('widgetDimensions',QuerryInfo,QuerryInfo.type,itemKey)
+       // if(QuerryInfo)chartInfo.type = 'Table'
+        switch (QuerryInfo.type) {
             case 'a':
                 return <Styled.WidgetCoral>위젯 A</Styled.WidgetCoral>;
             case 'b':
                 return <Styled.WidgetGreen>위젯 B</Styled.WidgetGreen>;
-            case 'line': {
-                // const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
-                // const widgetRef = useRef<HTMLDivElement>(null); // 고유한 widgetRef 생성
-
-                console.log('widgetDimension123', widgetDimensions);
+            case 'line':
                 return (
                     <Styled.Widget ref={widgetRef}>
                         <div style={{ width: '100%', height: '100%' }}>
@@ -235,13 +194,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                         </div>
                     </Styled.Widget>
                 );
-            }
-
-            case 'd': {
-                // const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
-                // const widgetRef = useRef<HTMLDivElement>(null); // 고유한 widgetRef 생성
-
-                console.log('widgetDimension123', widgetDimensions);
+            case 'd':
                 return (
                     <Styled.Widget ref={widgetRef}>
                         <div style={{ width: '100%', height: '100%' }}>
@@ -252,79 +205,79 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                                 widgetRef={widgetRef}
                                 isResized={isResized}
                                 sqlQuery={"SELECT ['firewall.dst.keyword'], avg(facility) AS aa FROM ['zen-{fw*'] WHERE query('(@timestamp:[now-2m TO now]) AND (firewall.action: drop)') GROUP BY ['firewall.dst.keyword'] LIMIT 10"}
-
                             />
-
                         </div>
                     </Styled.Widget>
                 );
-            }
-            case 'Globe3D': {
+            case 'Globe3D':
                 return (
                     <Styled.Widget ref={widgetRef}>
-                        {/* <DynamicWorld widgetRef={widgetRef} isResized={isResized} /> */}
+                        <DynamicWorld widgetRef={widgetRef} isResized={isResized} />
                     </Styled.Widget>
                 );
-
-            }
-            case 'GlobeTable': {
+            case 'table':
+            //  const tablec = [
+            //     { Header: 'timestamp', accessor: 'timestamp', Cell: ({ value }) => formatDate(value) },
+            //     { Header: 'airline', accessor: 'airline' },
+            //     { Header: 'srcAirportId', accessor: 'srcAirportId' },
+            //     { Header: 'stops', accessor: 'stops' },
+            // ];
+            return (
+                <div>
+                {QuerryInfo && QuerryInfo.formattedQuery &&
+                <Styled.Widget ref={widgetRef}>
+                      <QueryDslDataTable
+                        widgetRef={widgetRef}
+                        isResized={isResized}
+                        index="your-index" // 필요에 따라 인덱스 설정
+                        query={QuerryInfo} // 쿼리 전달
+                    />
+                </Styled.Widget>
+                }
+                </div>
+            );
+            case 'GlobeTable':
                 const columns = [
                     { Header: 'timestamp', accessor: 'timestamp', Cell: ({ value }) => formatDate(value) },
                     { Header: 'airline', accessor: 'airline' },
                     { Header: 'srcAirportId', accessor: 'srcAirportId' },
                     { Header: 'stops', accessor: 'stops' },
-                ]
+                ];
                 return (
                     <Styled.Widget ref={widgetRef}>
                         <RecentDataTable widgetRef={widgetRef} isResized={isResized} columns={columns} />
                     </Styled.Widget>
-
-                )
-            }
-            case 'GlobeTableSecond': {
-                const columns = [
+                );
+            case 'GlobeTableSecond':
+                const columnsSecond = [
                     { Header: 'timestamp', accessor: 'timestamp', Cell: ({ value }) => formatDate(value) },
                     { Header: 'd.location', accessor: 'dstIata.location' },
                     { Header: 'o.location', accessor: 'ostIata.location' },
                     { Header: 'airline', accessor: 'airline' },
                 ];
-
                 return (
                     <Styled.Widget ref={widgetRef}>
-                        <RecentDataTable widgetRef={widgetRef} isResized={isResized} columns={columns} />
+                        <RecentDataTable widgetRef={widgetRef} isResized={isResized} columns={columnsSecond} />
                     </Styled.Widget>
-
-                )
-            }
-            case 'D3Chart': {
+                );
+            case 'D3Chart':
                 const chartType = 'pie';
                 const initialChannel = 'realtime';
                 return (
                     <Styled.Widget ref={widgetRef}>
                         <D3Chart chartType={chartType} initialChannel={initialChannel} widgetRef={widgetRef} isResized={isResized} />
                     </Styled.Widget>
-
-                )
-            }
-
-            default: {
-                {/* Render the widget content here */ }
-
-                console.log('widgetDimension123', widgetDimensions);
+                );
+            default:
                 return (
-
                     <Styled.Widget ref={widgetRef}>
                         <div onClick={() => handleWidgetClick(itemKey)}>
                             <div style={{ width: '100%', height: '100%' }}>
-                           <HoneycombChart>
-
-                           </HoneycombChart>
+                                <HoneycombChart />
                             </div>
                         </div>
                     </Styled.Widget>
-
                 );
-            }
         }
     };
 
@@ -339,14 +292,12 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                 cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                 isResizable={true}
                 resizeHandles={["sw", "nw", "se", "ne"]}
-                onResizeStop={handleResizeStop} // 메모이제이션된 핸들러 사용
-                onDragStop={handleDragStop} // 메모이제이션된 핸들러 사용
-
+                onResizeStop={handleResizeStop}
+                onDragStop={handleDragStop}
             >
-                
                 {(currentLayouts.lg || []).map((item) => (
-                    <div key={item.i} id={item.i} onClick={() => handleWidgetSelect(item.i)}>
-                        {renderWidget(item.i)}
+                    <div key={item.i} id={item.i} onClick={() => handleWidgetClick(item.i)}>
+                        {renderWidget(item.i,item.ChartInfo)}
                     </div>
                 ))}
             </ResponsiveGridLayout>
@@ -356,10 +307,11 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                     onClose={handleCloseModal}
                     onSave={handleSave}
                     selectOptions={chartInfoMap}
-                    onChange={(option, target) => handleChange(option, target)}
+                    onChange={handleChange}
+                    selectedWidgetKey={selectedWidgetKey}
+                    
                 />
             </HeaderModal>
-  
         </>
     );
 };

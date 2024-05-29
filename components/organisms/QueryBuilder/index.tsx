@@ -1,12 +1,15 @@
+// src/components/organisms/QueryBuilder.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { QueryBuilder, formatQuery } from 'react-querybuilder';
 import 'react-querybuilder/dist/query-builder.css';
 import DatalistInput from '../../atoms/DataList';
 import { useQuery } from 'react-query';
-import { getFeildBYName, SearchByQueryDSL, saveQueryDsl,loadQueryDsl } from '../../../app/queries/providerDashboard';
+import { getFeildBYName, SearchByQueryDSL, saveQueryDsl, loadQueryDsl } from '../../../app/queries/providerDashboard';
 import { AxiosResponse } from 'axios';
 import SavedQueriesComponent from '../ListComp';
-
+import { useRecoilState,useRecoilValue } from 'recoil';
+import { chartInfoMapState } from '../../../app/state/chartState';
+import { CurrentLayoutState } from '../../../app/state/CurrentLayout';
 interface Field {
   name: string;
   label?: string;
@@ -26,12 +29,20 @@ interface FieldResponse {
   name: string;
   type: string;
 }
+
+interface QueryBuilderComponentProps {
+  initialQuery: Query;
+  fields: Field[];
+  onQueryChange: (query: Query) => void;
+}
+
 const initialQuery: Query = {
   combinator: 'and',
   rules: [],
 };
 
-const QueryBuilderComponent = () => {
+const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQuery, fields, onQueryChange }) => {
+  console.log('initialQuery',initialQuery)
   const operatorMappings = {
     date: [
       { name: 'between', label: 'Between' },
@@ -40,7 +51,7 @@ const QueryBuilderComponent = () => {
       { name: 'on', label: 'On' }
     ],
     text: [
-      { name: '=', label: '=' },
+    { name: 'match', label: 'Match' },
       { name: 'contains', label: 'Contains' },
       { name: 'begins_with', label: 'Begins with' },
       { name: 'ends_with', label: 'Ends with' }
@@ -54,15 +65,16 @@ const QueryBuilderComponent = () => {
   };
 
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedField, setSelectedField] = useState<string>('');
+  const [selectedField, setSelectedField] = useState<string>(initialQuery.index);
+  const [ChartField,setChartField] = useState<string>(initialQuery.type);
   const [loading, setLoading] = useState<boolean>(false);
   const [fieldData, setFieldData] = useState<FieldResponse[]>([]);
-  const queryRef = useRef<Query>(initialQuery);
+  const queryRef = useRef<Query>(initialQuery.QuerydslProp);
   const [queryName, setQueryName] = useState<string>(''); // 쿼리 이름 상태 추가
+  const [chartInfoMap, setChartInfoMap] = useRecoilState(chartInfoMapState);
+  const [queryState, setQueryState] = useState<Query>(initialQuery.QuerydslProp);
+  const LayoutMap = useRecoilValue(CurrentLayoutState);
 
-  /**
-   * 저장된 쿼리 리스트
-   */
   const { data: savedQueries, refetch: refetchSavedQueries } = useQuery(['loadQueryDsl'], () => loadQueryDsl());
 
   const queryBuilderRef = useRef(null); // QueryBuilder 인스턴스를 참조하기 위해 useRef 사용
@@ -72,6 +84,10 @@ const QueryBuilderComponent = () => {
   const allFields: Field[] = [
     { name: 'model', label: 'model', operators: getFeildBYName },
     { name: 'trainingdata', label: 'trainingdata', operators: getFeildBYName }
+  ];
+  const ChartFields: Field[] = [
+    { name: 'honeyComb', label: '벌집', operators: getFeildBYName },
+    { name: 'table', label: '테이블', operators: getFeildBYName }
   ];
 
   useEffect(() => {
@@ -98,21 +114,96 @@ const QueryBuilderComponent = () => {
     } else {
       setFieldData([]);
     }
-  }, [selectedField]);
+  }, [selectedField]);  
 
+  // Elasticsearch 쿼리 포맷터 함수
+
+  const formatElasticsearchQuery = (rule) => {
+    const field = rule.field.endsWith('.keyword') ? rule.field : `${rule.field}.keyword`;
+  
+    switch (rule.operator) {
+      case 'match': return { match: { [field]: rule.value } };
+      case 'contains':
+        return { wildcard: { [field]: `*${rule.value}*` } };
+      case 'begins_with':
+        return { wildcard: { [field]: `${rule.value}*` } };
+      case 'ends_with':
+        return { wildcard: { [field]: `*${rule.value}` } };
+      case '=':
+        return { term: { [field]: rule.value } };
+      case '<':
+        return { range: { [field]: { lt: rule.value } } };
+      case '>':
+        return { range: { [field]: { gt: rule.value } } };
+      case '!=':
+        return { bool: { must_not: { term: { [field]: rule.value } } } };
+        case 'between':
+          // Ensure rule.value is an array with two elements
+          let gteValue, lteValue;
+          if (Array.isArray(rule.value)) {
+            [gteValue, lteValue] = rule.value;
+          } else if (typeof rule.value === 'string') {
+            [gteValue, lteValue] = rule.value.split(',').map(v => v.trim());
+          }
+    
+          if (gteValue && lteValue) {
+            return {
+              range: {
+                [rule.field]: {
+                  gte: gteValue,
+                  lte: lteValue
+                }
+              }
+            };
+          } else {
+            console.error('Invalid value for between operator:', rule.value);
+            return {};
+          }
+      case 'before':
+        return { range: { [rule.field]: { lt: rule.value } } };
+      case 'after':
+        return { range: { [rule.field]: { gt: rule.value } } };
+      case 'on':
+        return { term: { [rule.field]: rule.value } };
+      default:
+        return {};
+    }
+  };
+  const formatElasticsearchGroup = (group) => ({
+    bool: {
+      [group.combinator === 'and' ? 'must' : 'should']: group.rules.map(rule => 
+        rule.rules ? formatElasticsearchGroup(rule) : formatElasticsearchQuery(rule)
+      )
+    }
+  });
+  
   const handleQueryChange = useCallback((newQuery: Query) => {
-    console.log("Query changed:", newQuery);
+  
     queryRef.current = newQuery;
+    const formattedQuery = formatElasticsearchGroup(newQuery);
+    console.log("Query changed:", newQuery,formattedQuery);
     setQueryState(newQuery);
-  }, []);
+    setChartInfoMap((prevChartInfoMap) => ({
+      ...prevChartInfoMap,
+      ["recentQuery"]: {
+        ...prevChartInfoMap[selectedField],
+        QuerydslProp: newQuery,
+        formattedQuery:formattedQuery,
+        index:selectedField,
+        type:ChartField,
+      },
+    }));
+  }, [selectedField, setChartInfoMap,ChartField]);
 
   const handleFieldChange = (event) => {
     const newField = event.target.value;
     setSelectedField(newField);
   };
 
-  const [queryState, setQueryState] = useState<Query>(initialQuery);
-
+ const handleChartChange = (event) => {
+  const newField = event.target.value;
+  setChartField(newField);
+ }
   const onClose = () => {
     setIsOpen(false);
   };
@@ -124,13 +215,7 @@ const QueryBuilderComponent = () => {
     const formattedQuery = filterQuery(rawQuery)("elasticsearch");
     console.log("Formatted query for saving:", formattedQuery);
 
-    // 서버에서 저장된 쿼리 리스트 불러오기
     try {
-      //const savedQueries = await loadQueries();  // 예: 서버로부터 저장된 쿼리 리스트를 불러옵니다.
-      let savedQueries = [];
-      //console.log("Saved queries loaded successfully:", savedQueries);
-
-      // 사용자에게 저장된 쿼리 리스트를 보여주고, 새로 저장하거나 기존의 것을 덮어쓸지 선택하게 함
       const queryNameToSave = prompt('Enter the name of the query to save:');
       if (queryNameToSave) {
         const existingQuery = savedQueries.find(q => q.name === queryNameToSave);
@@ -138,12 +223,10 @@ const QueryBuilderComponent = () => {
         if (existingQuery) {
           const overwrite = confirm('A query with this name already exists. Overwrite it?');
           if (!overwrite) {
-            return; // 사용자가 덮어쓰기를 원하지 않으면 함수 종료
+            return;
           }
         }
 
-        // 쿼리 저장 로직
-        //await saveQuery({ name: queryNameToSave, query: formattedQuery });
         alert('Query saved successfully');
       } else {
         alert('Saving cancelled: No name provided for the query.');
@@ -153,16 +236,9 @@ const QueryBuilderComponent = () => {
       alert('Failed to load or save queries.');
     }
 
-    onClose();  // 모달 또는 폼 닫기
+    onClose();
   };
 
-  /**
-   * 
-   * @param query queryBuilder ref에서 읽어온 값
-   * @returns value값이 null이거나 ""인 경우 해당 rule을 무시한다. 
-   * @param format queryBuilder에서 일겅온 값을 매핑할 포맷
-   * @returns QueryDsl
-   */
   const filterQuery = (query) => (format) => {
     const filterRules = rules => {
       console.log('rules', rules);
@@ -186,15 +262,9 @@ const QueryBuilderComponent = () => {
 
     return formatQuery(filteredQuery, { format: format });
   };
-  const handleSelectQuery = () =>{
 
-  }
-  const handleDeleteQuery = () => {
-
-
-  }
   const handleSaveQuery = async () => {
-    setShowSavedQueries(!showSavedQueries); // 목록 토글
+    setShowSavedQueries(!showSavedQueries);
 
     const rawQuery = queryRef.current;
     const formattedQuery = formatQuery(rawQuery, { format: 'elasticsearch' });
@@ -204,126 +274,12 @@ const QueryBuilderComponent = () => {
       return;
     }
     const queryDSLParams = {
-      name : queryNameToSave,
-      queryDsl : formattedQuery,
-      QueryBuilderFormat : rawQuery,
-
+      name: queryNameToSave,
+      queryDsl: formattedQuery,
+      QueryBuilderFormat: rawQuery,
     }
     const id = Date.now();
-    saveQueryDsl(id,queryDSLParams);
-    /*
-    const existingQuery = savedQueries.find(q => q.name === queryNameToSave);
-    const shouldOverwrite = existingQuery ? confirm('A query with this name already exists. Overwrite it?') : true;
-  
-    if (shouldOverwrite) {
-      try {
-        // await saveQuery({ name: queryNameToSave, query: formattedQuery });
-        // alert('Query saved successfully');
-        // fetchSavedQueries(); // Refresh the list of saved queries
-      } catch (error) {
-        console.error('Error saving query:', error);
-        alert('Error saving the query');
-      }
-    }
-    */
-  };
-  
-  const handleEditQuery = () => {
-
-  }
-  /* dsl query = > querybuilder format 변환함수. 에러가 많아서 비활성화
-  const convertElasticsearchDSLToQueryBuilder = (dsl) => {
-    if (dsl.queryDsl) {
-      dsl = dsl.queryDsl;
-    } else {
-      return { combinator: 'and', rules: [] };
-    }
-  
-    const convertRule = (rule) => {
-      if (rule.bool) {
-        return {
-          combinator: rule.bool.must ? 'and' : 'or',
-          rules: (rule.bool.must || rule.bool.should || rule.bool.must_not || []).map(convertRule),
-        };
-      } else {
-        const field = Object.keys(rule)[0];
-        const condition = rule[field];
-        if (condition.match) {
-          return { field, operator: '=', value: condition.match[field] };
-        } else if (condition.range) {
-          const rangeKey = Object.keys(condition.range[field])[0];
-          const operatorMap = {
-            lt: '<',
-            lte: '<=',
-            gt: '>',
-            gte: '>='
-          };
-          const operator = operatorMap[rangeKey] || '=';
-          return { field, operator, value: condition.range[field][rangeKey] };
-        } else if (condition.match_phrase) {
-          return { field, operator: 'contains', value: condition.match_phrase[field] };
-        } else if (condition.prefix) {
-          return { field, operator: 'begins_with', value: condition.prefix[field] };
-        } else if (condition.wildcard) {
-          return { field, operator: 'ends_with', value: condition.wildcard[field].replace('*', '') };
-        } else if (condition.bool && condition.bool.must_not) {
-          return { field, operator: '!=', value: condition.bool.must_not.match[field] };
-        }
-      }
-    };
-  
-    const rules = (dsl.bool.must || dsl.bool.should || dsl.bool.must_not || []).map(convertRule);
-    return {
-      combinator: dsl.bool.must ? 'and' : dsl.bool.should ? 'or' : 'and',
-      rules: rules.filter(Boolean), // Ensure we remove any undefined rules
-    };
-  };
-  */
-  
-  const onRetrieve = async (format: string) => {
-    let formattedQuery;
-    if (format === 'elasticsearch') {
-      const rawQuery = queryRef.current;
-
-      // 필터링 로직 적용
-      formattedQuery = filterQuery(rawQuery)(format);
-
-      // Log the formatted query to see its structure
-      console.log(`Retrieved ${format} query:`, formattedQuery, queryRef.current);
-
-      // If formattedQuery is a string, parse it into an object
-      if (typeof formattedQuery === 'string') {
-        formattedQuery = JSON.parse(formattedQuery);
-      }
-
-      // Include the selected field as the index in the formatted query
-      const elasticsearchQuery = {
-        index: selectedField,
-        query: formattedQuery
-      };
-      console.log('Elasticsearch Query:', elasticsearchQuery);
-
-      // Fetch data using SearchByQueryDSL
-      try {
-        const searchParams = {
-          index: selectedField,
-          body: formattedQuery
-        };
-        const response = await SearchByQueryDSL(searchParams);
-        console.log('res', response)
-        if (response.data.success) {
-          // Display an alert with the retrieved data
-          alert(`Retrieved Data: ${JSON.stringify(response.data.data, null, 2)}`);
-        } else {
-          console.error('Error retrieving data:', response);
-          alert('Error retrieving data. Please check the console for more details.');
-        }
-        console.log('Retrieved Data:', response);
-      } catch (error) {
-        console.error('Error retrieving data:', error);
-        alert('Error retrieving data. Please check the console for more details.');
-      }
-    }
+    saveQueryDsl(id, queryDSLParams);
   };
 
   const memoizedFieldSelector = useCallback((props) => (
@@ -342,7 +298,7 @@ const QueryBuilderComponent = () => {
         id="query-name"
         value={queryName}
         onChange={(value) => setQueryName(value)}
-        options={[]} // 데이터 리스트의 옵션을 추가할 수 있습니다.
+        options={[]}
       />
       <div>
         <label htmlFor="field-selector">Select Field:</label>
@@ -358,12 +314,26 @@ const QueryBuilderComponent = () => {
           ))}
         </select>
       </div>
+      <div>
+        <label htmlFor="field-selector">Select chart:</label>
+        <select
+          id="chart-selector"
+          value={ChartField}
+          onChange={handleChartChange}
+          disabled={loading}
+        >
+          <option value="">Select a Chart</option>
+          {ChartFields.map((field, index) => (
+            <option key={index} value={field.name}>{field.label}</option>
+          ))}
+        </select>
+      </div>
       {loading ? (
         <div>Loading...</div>
       ) : (
         <div>
           <QueryBuilder
-            ref={queryBuilderRef} 
+            ref={queryBuilderRef}
             fields={fieldData}
             query={queryState}
             onQueryChange={handleQueryChange}
@@ -373,11 +343,20 @@ const QueryBuilderComponent = () => {
             <SavedQueriesComponent
               savedQueries={savedQueries}
               onSelect={(query) => {
-                //const queryBuilderQuery = convertElasticsearchDSLToQueryBuilder(query._source);
-                console.log('Query selected:', query)
+                console.log('Query selected:', query);
+                setQueryState(query._source.QueryBuilderFormat);
+                const formattedQuery = formatQuery(query._source.QueryBuilderFormat, { format: 'elasticsearch' });
 
-                 setQueryState(query._source.QueryBuilderFormat);
-              }}  
+                setChartInfoMap((prevChartInfoMap) => ({
+                  ...prevChartInfoMap,
+                  ["recentQuery"]: {
+                    ...prevChartInfoMap[selectedField],
+                    QuerydslProp: query._source.QueryBuilderFormat,
+                    formattedQuery:formattedQuery,
+                    index: selectedField,
+                  },
+                }));
+              }}
               onDelete={(id) => console.log('Query deleted:', id)}
               onEdit={(query) => console.log('Query edited:', query)}
             />
@@ -386,7 +365,6 @@ const QueryBuilderComponent = () => {
       )}
       <div style={{ marginTop: '20px' }}>
         <button onClick={handleSaveQuery}>Save Query</button>
-        {/* <button onClick={handleLoadQuery}>Load Query</button> */}
         <button onClick={onClose} style={{ marginRight: '10px' }}>Cancel</button>
         <button onClick={() => onRetrieve('elasticsearch')}>Retrieve Elasticsearch Query</button>
       </div>

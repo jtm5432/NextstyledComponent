@@ -5,6 +5,7 @@ import { AppProps } from 'next/app';
 import { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { QueryClient } from 'react-query';
 import { QueryClientProvider } from 'react-query';
+import { RecoilRoot } from 'recoil';
 
 import 'tailwindcss/tailwind.css'; // tailwind styles
 export function createQueryClient() {
@@ -48,7 +49,11 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
 
     <ThemeProvider theme={theme}>
       <GlobalStyle />
+      <RecoilRoot>
+
       <Component {...pageProps} />
+      </RecoilRoot>
+
     </ThemeProvider>
     </QueryClientProvider>
 

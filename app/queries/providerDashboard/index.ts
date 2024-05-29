@@ -227,8 +227,27 @@ const saveQueryDsl = async (id,queryDSLParams) => {
   console.log('saveQueryDsl',response)
   return response
 }
+const getDataByQueryDSL = async (searchParams) => {
+  searchParams = JSON.stringify(searchParams)
+  //console.log('searchParams',searchParams)
+  const endpoint = "https://localhost:8081/reportdata";
+  const params = {
+    operator: "getDataByQueryDSL",
+    params : searchParams,
+    cid : "c00000"
+
+  };
+  
+  const response = await axios.post('/api/axios', { endpoint, params });
+  console.log('searchParams',response.data)
+  
+  return response.data; // 저장된 데이터 반환
+}
+
+
 const SearchByQueryDSL = async (searchParams) => {
   searchParams = JSON.stringify(searchParams)
+  console.log('searchParams',searchParams)
   const endpoint = "https://localhost:8081/reportdata";
   const params = {
     operator: "searchParams",
@@ -277,5 +296,23 @@ const getFeildBYName = async (indexName) => {
   return response.data;
 }
 
-export {fetchDeepAr, saveQueryDsl,SearchByQueryDSL,loadQueryDsl ,getFeildBYName , getCidFromServer,fetchSearchData ,SavegridLayouts,addQueryToQueue,fetchSavedData, processQueriesInBatches ,useGridData,fetchDashboardLineChart,fetchDashboardBarcolChart ,getIndexlist ,saveDataToLocalStorage};
+export {
+  fetchDeepAr,
+  saveQueryDsl,
+  SearchByQueryDSL,
+  loadQueryDsl,
+  getFeildBYName,
+  getCidFromServer,
+  fetchSearchData,
+  SavegridLayouts,
+  addQueryToQueue,
+  fetchSavedData,
+  processQueriesInBatches,
+  useGridData,
+  fetchDashboardLineChart,
+  fetchDashboardBarcolChart,
+  getIndexlist,
+  saveDataToLocalStorage,
+  getDataByQueryDSL,
+};
 
