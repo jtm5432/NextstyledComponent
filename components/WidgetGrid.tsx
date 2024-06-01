@@ -65,9 +65,21 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
 
     const handleDragStop = useCallback(
         (layout, oldItem, newItem) => {
-            //setGridLayout(layout);
+            console.log('layoutdrag', layout, 'cr', currentLayouts);
+    
+            if (layout) {
+                const updatedLayout = layout.map(layoutItem => {
+                    const matchingCurrentLayout = currentLayouts.lg.find(currentLayoutItem => currentLayoutItem.i === layoutItem.i);
+                    if (matchingCurrentLayout) {
+                        layoutItem.ChartInfo = matchingCurrentLayout.ChartInfo;
+                    }
+                    return layoutItem;
+                });
+    
+                setGridLayout(updatedLayout);
+            }
         },
-        [setGridLayout]
+        [setGridLayout, currentLayouts]
     );
 
     useEffect(() => {
@@ -89,7 +101,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     useEffect(() => {
         if (currentLayouts && chartInfoMap.recentQuery &&chartInfoMap.recentQuery.type ) {
             const widgetIndex = currentLayouts.lg.findIndex(e => e.i === selectedWidgetKey);
-            if (widgetIndex !== -1) {
+            if (widgetIndex !== -1 && chartInfoMap.recentQuery.key === selectedWidgetKey) {
                 // 기존 객체를 복사하고 ChartInfo 속성을 추가합니다.
                 const updatedWidget = { ...currentLayouts.lg[widgetIndex], ChartInfo: chartInfoMap.recentQuery };
                 console.log('widgetIndex',currentLayouts.lg[widgetIndex],chartInfoMap.recentQuery)

@@ -7,7 +7,7 @@ import { useQuery } from 'react-query';
 import { getFeildBYName, SearchByQueryDSL, saveQueryDsl, loadQueryDsl } from '../../../app/queries/providerDashboard';
 import { AxiosResponse } from 'axios';
 import SavedQueriesComponent from '../ListComp';
-import { useRecoilState,useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { chartInfoMapState } from '../../../app/state/chartState';
 import { CurrentLayoutState } from '../../../app/state/CurrentLayout';
 interface Field {
@@ -34,6 +34,7 @@ interface QueryBuilderComponentProps {
   initialQuery: Query;
   fields: Field[];
   onQueryChange: (query: Query) => void;
+  selectedWidgetKey: string;
 }
 
 const initialQuery: Query = {
@@ -41,8 +42,8 @@ const initialQuery: Query = {
   rules: [],
 };
 
-const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQuery, fields, onQueryChange }) => {
-  console.log('initialQuery',initialQuery)
+const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQuery, fields, onQueryChange, selectedWidgetKey }) => {
+  console.log('initialQuery', initialQuery)
   const operatorMappings = {
     date: [
       { name: 'between', label: 'Between' },
@@ -51,7 +52,7 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
       { name: 'on', label: 'On' }
     ],
     text: [
-    { name: 'match', label: 'Match' },
+      { name: 'match', label: 'Match' },
       { name: 'contains', label: 'Contains' },
       { name: 'begins_with', label: 'Begins with' },
       { name: 'ends_with', label: 'Ends with' }
@@ -66,7 +67,7 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<string>(initialQuery.index);
-  const [ChartField,setChartField] = useState<string>(initialQuery.type);
+  const [ChartField, setChartField] = useState<string>(initialQuery.type);
   const [loading, setLoading] = useState<boolean>(false);
   const [fieldData, setFieldData] = useState<FieldResponse[]>([]);
   const queryRef = useRef<Query>(initialQuery.QuerydslProp);
@@ -80,6 +81,8 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
   const queryBuilderRef = useRef(null); // QueryBuilder 인스턴스를 참조하기 위해 useRef 사용
 
   const [showSavedQueries, setShowSavedQueries] = useState(false); // 쿼리 리스트 
+  const [aggregations, setAggregations] = useState([]);
+  const aggregationTypes = ['sum', 'average', 'min', 'max', 'value_count', 'date_histogram'];
 
   const allFields: Field[] = [
     { name: 'model', label: 'model', operators: getFeildBYName },
@@ -89,6 +92,33 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
     { name: 'honeyComb', label: '벌집', operators: getFeildBYName },
     { name: 'table', label: '테이블', operators: getFeildBYName }
   ];
+  const addAggregation = () => {
+    // 기본적으로 간단한 집계 유형을 추가하고, 특정 유형에 필요한 추가 설정은 사용자가 집계 유형을 변경할 때 처리
+    setAggregations([...aggregations, { field: '', type: 'sum' }]);
+  };
+  const removeAggregation = (index) => {
+    const newAggs = [...aggregations];
+    newAggs.splice(index, 1);
+    setAggregations(newAggs);
+  };
+// 사용자가 집계 유형을 변경할 때 필요한 추가 설정을 동적으로 제공
+const handleAggregationChange = (index, field, value) => {
+  const newAggs = [...aggregations];
+  if (index < 0 || index >= newAggs.length) {
+    console.error('Invalid index');
+    return;
+  }
+
+  const updatedAgg = { ...newAggs[index], [field]: value };
+
+  // date_histogram을 선택하는 경우에만 기본 간격을 설정
+  if (field === 'type' && value === 'date_histogram') {
+    updatedAgg.interval = updatedAgg.interval || 'day';  // 이미 설정된 간격이 없는 경우 기본값 설정
+  }
+
+  newAggs[index] = updatedAgg;
+  setAggregations(newAggs);
+};
 
   useEffect(() => {
     const getDisplayField = allFields.find(e => e.name === selectedField);
@@ -114,13 +144,13 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
     } else {
       setFieldData([]);
     }
-  }, [selectedField]);  
+  }, [selectedField]);
 
   // Elasticsearch 쿼리 포맷터 함수
 
   const formatElasticsearchQuery = (rule) => {
     const field = rule.field.endsWith('.keyword') ? rule.field : `${rule.field}.keyword`;
-  
+
     switch (rule.operator) {
       case 'match': return { match: { [field]: rule.value } };
       case 'contains':
@@ -130,35 +160,35 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
       case 'ends_with':
         return { wildcard: { [field]: `*${rule.value}` } };
       case '=':
-        return { term: { [field]: rule.value } };
+        return { term: { [rule.field]: rule.value } };
       case '<':
-        return { range: { [field]: { lt: rule.value } } };
+        return { range: { [rule.field]: { lt: rule.value } } };
       case '>':
-        return { range: { [field]: { gt: rule.value } } };
+        return { range: { [rule.field]: { gt: rule.value } } };
       case '!=':
-        return { bool: { must_not: { term: { [field]: rule.value } } } };
-        case 'between':
-          // Ensure rule.value is an array with two elements
-          let gteValue, lteValue;
-          if (Array.isArray(rule.value)) {
-            [gteValue, lteValue] = rule.value;
-          } else if (typeof rule.value === 'string') {
-            [gteValue, lteValue] = rule.value.split(',').map(v => v.trim());
-          }
-    
-          if (gteValue && lteValue) {
-            return {
-              range: {
-                [rule.field]: {
-                  gte: gteValue,
-                  lte: lteValue
-                }
+        return { bool: { must_not: { term: { [rule.field]: rule.value } } } };
+      case 'between':
+        // Ensure rule.value is an array with two elements
+        let gteValue, lteValue;
+        if (Array.isArray(rule.value)) {
+          [gteValue, lteValue] = rule.value;
+        } else if (typeof rule.value === 'string') {
+          [gteValue, lteValue] = rule.value.split(',').map(v => v.trim());
+        }
+
+        if (gteValue && lteValue) {
+          return {
+            range: {
+              [rule.field]: {
+                gte: gteValue,
+                lte: lteValue
               }
-            };
-          } else {
-            console.error('Invalid value for between operator:', rule.value);
-            return {};
-          }
+            }
+          };
+        } else {
+          console.error('Invalid value for between operator:', rule.value);
+          return {};
+        }
       case 'before':
         return { range: { [rule.field]: { lt: rule.value } } };
       case 'after':
@@ -171,39 +201,68 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
   };
   const formatElasticsearchGroup = (group) => ({
     bool: {
-      [group.combinator === 'and' ? 'must' : 'should']: group.rules.map(rule => 
+      [group.combinator === 'and' ? 'must' : 'should']: group.rules.map(rule =>
         rule.rules ? formatElasticsearchGroup(rule) : formatElasticsearchQuery(rule)
       )
     }
   });
-  
+
+  /**
+   * Aggregation의 값을 QueryDslformat에 맞게 수정해줌
+   */
+  const createAggregationQuery = () => {
+    const aggsQuery = {};
+    aggregations.forEach(agg => {
+      if (agg.field && agg.type) {
+        if (agg.type === 'date_histogram') {
+          aggsQuery[`${agg.type}_${agg.field}`] = {
+            date_histogram: {
+              field: agg.field,
+              calendar_interval: agg.interval // 사용자가 선택한 간격
+            }
+          };
+        } else {
+          aggsQuery[`${agg.type}_${agg.field}`] = {
+            [agg.type]: { field: agg.field }
+          };
+        }
+      }
+    });
+    return aggsQuery;
+  }
+
+
   const handleQueryChange = useCallback((newQuery: Query) => {
-  
+
     queryRef.current = newQuery;
     const formattedQuery = formatElasticsearchGroup(newQuery);
-    console.log("Query changed:", newQuery,formattedQuery);
+    const aggregationQuery = createAggregationQuery();
+
+    console.log("Query changed:", formattedQuery, aggregationQuery);
     setQueryState(newQuery);
     setChartInfoMap((prevChartInfoMap) => ({
       ...prevChartInfoMap,
       ["recentQuery"]: {
         ...prevChartInfoMap[selectedField],
         QuerydslProp: newQuery,
-        formattedQuery:formattedQuery,
-        index:selectedField,
-        type:ChartField,
+        formattedQuery: formattedQuery,
+        aggregationQuery:aggregationQuery,
+        index: selectedField,
+        type: ChartField,
+        key: selectedWidgetKey,
       },
     }));
-  }, [selectedField, setChartInfoMap,ChartField]);
+  }, [selectedField, setChartInfoMap, ChartField, aggregations]);
 
   const handleFieldChange = (event) => {
     const newField = event.target.value;
     setSelectedField(newField);
   };
 
- const handleChartChange = (event) => {
-  const newField = event.target.value;
-  setChartField(newField);
- }
+  const handleChartChange = (event) => {
+    const newField = event.target.value;
+    setChartField(newField);
+  }
   const onClose = () => {
     setIsOpen(false);
   };
@@ -339,6 +398,33 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
             onQueryChange={handleQueryChange}
             controlElements={{ fieldSelector: memoizedFieldSelector }}
           />
+          {aggregations.map((agg, index) => (
+            <div key={index}>
+              <select value={agg.type} onChange={e => handleAggregationChange(index, 'type', e.target.value)}>
+                {aggregationTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+              <select value={agg.field} onChange={e => handleAggregationChange(index, 'field', e.target.value)}>
+                {fieldData.map(field => (
+                  <option key={field.name} value={field.name}>{field.label || field.name}</option>
+                ))}
+              </select>
+              {agg.type === 'date_histogram' && (
+                <select value={agg.interval} onChange={e => handleAggregationChange(index, 'interval', e.target.value)}>
+                  <option value="minute">Minute</option>
+                  <option value="hour">Hour</option>
+                  <option value="day">Day</option>
+                  <option value="week">Week</option>
+                  <option value="month">Month</option>
+                  <option value="year">Year</option>
+                </select>
+              )}
+              <button onClick={() => removeAggregation(index)}>Remove</button>
+            </div>
+          ))}
+
+          <button onClick={addAggregation}>Add Aggregation</button>
           {showSavedQueries && (
             <SavedQueriesComponent
               savedQueries={savedQueries}
@@ -352,7 +438,7 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
                   ["recentQuery"]: {
                     ...prevChartInfoMap[selectedField],
                     QuerydslProp: query._source.QueryBuilderFormat,
-                    formattedQuery:formattedQuery,
+                    formattedQuery: formattedQuery,
                     index: selectedField,
                   },
                 }));

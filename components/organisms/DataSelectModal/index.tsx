@@ -93,6 +93,7 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({
         onQueryChange={(query) => {
           setFormData(prev => ({ ...prev, QuerydslProp: query }));
         }}
+        selectedWidgetKey={selectedWidgetKey}
       />
       <Button variant="primary" onClick={toggleQueryBuilderModal}>쿼리 빌더 열기</Button>
       <Button variant="ok" onClick={handleSaveClick}>Save</Button>

@@ -29,9 +29,10 @@ const QueryDslDataTable: React.FC<WidgetChartProps> = ({ width = 100, height = 1
 
     const SearchParams = {
         index: query.index,
-        QueryDsl: query.formattedQuery
+        QueryDsl: query.formattedQuery,
+        aggregationQuery : query.aggregationQuery
     };
-
+    console.log('queryDsltabe',query)
     const { data, isLoading, refetch } = useQuery(['getDataByQueryDSL', query], () => getDataByQueryDSL(SearchParams), {
         refetchOnWindowFocus: false,
         enabled: !!query // 쿼리가 존재할 때만 실행되도록 설정

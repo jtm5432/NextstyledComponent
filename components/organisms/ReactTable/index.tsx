@@ -3,7 +3,6 @@ import { useTable } from 'react-table';
 import styled, { keyframes } from 'styled-components';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 
-// StyledTable 컴포넌트의 props 타입을 정의합니다.
 interface StyledTableProps {
     // tWidth: string | number;
     // tHeight: string | number;
@@ -17,6 +16,7 @@ const fadeOut = keyframes`
   from { opacity: 1; }
   to { opacity: 0; }
 `;
+
 const StyledTableRow = styled.tr`
   animation: ${fadeIn} 0.7s ease-in;
 
@@ -24,11 +24,10 @@ const StyledTableRow = styled.tr`
     animation: ${fadeOut} 0.7s ease-out;
   }
 `;
+
 const StyledTable = styled.div<StyledTableProps>`
-  
     table {
-          border-collapse: collapse;
-          
+        border-collapse: collapse;
         table-layout: fixed;
         word-wrap: break-word;
     }
@@ -40,18 +39,19 @@ const StyledTable = styled.div<StyledTableProps>`
         overflow: hidden; // 넘치는 내용 숨기기
         white-space: nowrap; // 내용을 한 줄에 표시
         text-overflow: ellipsis; // 넘치는 내용을 ...으로 표시
+        color: white; // 텍스트 색상을 흰색으로 설정
     }
 
     th {
-        background-color: #f5f5f5;
+        background-color: #333; // 헤더 배경색을 어두운 회색으로 설정
         font-weight: bold;
     }
 
     tbody tr:hover {
-        background-color: #f0f0f0;
+        background-color: #444; // 행에 마우스를 올렸을 때 배경색을 어두운 회색으로 설정
     }
-    
 `;
+
 function ReactTableComponent({ data, width, height, columns }) {
     if (!columns.length || !data || !data.length || !width || !height) {
         data = []; width = '0'; height = '0';
@@ -63,8 +63,6 @@ function ReactTableComponent({ data, width, height, columns }) {
     }, [width, height]);
     const [rowsState, setRowsState] = useState(data);
 
-
-
     const {
         getTableProps,
         getTableBodyProps,
@@ -73,8 +71,6 @@ function ReactTableComponent({ data, width, height, columns }) {
         prepareRow
     } = useTable({ columns, data });
 
-    //console.log('Table dimensions:', tableWidth, tableHeight);
-
     return (
         <StyledTable>
             <table {...getTableProps()} style={{ width: tableWidth, maxHeight: tableHeight, borderCollapse: 'collapse', overflowY: 'auto' }}>
@@ -82,7 +78,7 @@ function ReactTableComponent({ data, width, height, columns }) {
                     {headerGroups.map(headerGroup => (
                         <tr {...headerGroup.getHeaderGroupProps()}>
                             {headerGroup.headers.map(column => (
-                                <th {...column.getHeaderProps()} style={{ padding: '2px 4px', border: '1px solid #e0e0e0', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>
+                                <th {...column.getHeaderProps()} style={{ padding: '2px 4px', border: '1px solid #e0e0e0', backgroundColor: '#333', fontWeight: 'bold' }}>
                                     {column.render('Header')}
                                 </th>
                             ))}

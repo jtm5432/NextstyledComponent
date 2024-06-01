@@ -239,7 +239,7 @@ const getDataByQueryDSL = async (searchParams) => {
   };
   
   const response = await axios.post('/api/axios', { endpoint, params });
-  console.log('searchParams',response.data)
+  console.log('searchParams',response)
   
   return response.data; // 저장된 데이터 반환
 }
