@@ -8,7 +8,8 @@ import { LayoutType, LayoutsProps } from '../types/WidgetGridTypes';
 import Styled from '../styles/Widget.styles';
 import debounce from 'lodash/debounce';
 import { formatDate } from '../app/utils/TableFormatter';
-import LineChart from './organisms/Highchart/DashboardHighchart';
+//import LineChart from './organisms/Highchart/DashboardHighchart';
+import LineChart from './molecules/D3ChartTypes/LineChart';
 import BarcolChart from './organisms/Highchart/BarcolHighchart';
 import D3Chart from './organisms/D3Chart';
 import HeaderModal from '../components/templates/HeaderModal';
@@ -53,7 +54,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     const [chartInfoMap, setChartInfoMap] = useRecoilState(chartInfoMapState);
     const [selectedWidgetKey, setSelectedWidgetKey] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-   // const [chartInfoMap, setChartInfoMap] = useRecoilState(chartInfoMapState);
+    // const [chartInfoMap, setChartInfoMap] = useRecoilState(chartInfoMapState);
 
     const handleResizeStop = useCallback(
         (...args) => {
@@ -66,7 +67,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     const handleDragStop = useCallback(
         (layout, oldItem, newItem) => {
             console.log('layoutdrag', layout, 'cr', currentLayouts);
-    
+
             if (layout) {
                 const updatedLayout = layout.map(layoutItem => {
                     const matchingCurrentLayout = currentLayouts.lg.find(currentLayoutItem => currentLayoutItem.i === layoutItem.i);
@@ -75,7 +76,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                     }
                     return layoutItem;
                 });
-    
+
                 setGridLayout(updatedLayout);
             }
         },
@@ -83,9 +84,11 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     );
 
     useEffect(() => {
-        console.log('layoutchange',layouts)
+        console.log('layoutchange', layouts)
         setCurrentLayouts(layouts);
-    }, [layouts]);
+    }, [layouts, setCurrentLayouts]);
+
+
 
     useEffect(() => {
         const handleWindowResize = () => {
@@ -99,35 +102,35 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
         };
     }, []);
     useEffect(() => {
-        if (currentLayouts && chartInfoMap.recentQuery &&chartInfoMap.recentQuery.type ) {
+        if (currentLayouts && chartInfoMap.recentQuery && chartInfoMap.recentQuery.type) {
             const widgetIndex = currentLayouts.lg.findIndex(e => e.i === selectedWidgetKey);
             if (widgetIndex !== -1 && chartInfoMap.recentQuery.key === selectedWidgetKey) {
                 // 기존 객체를 복사하고 ChartInfo 속성을 추가합니다.
                 const updatedWidget = { ...currentLayouts.lg[widgetIndex], ChartInfo: chartInfoMap.recentQuery };
-                console.log('widgetIndex',currentLayouts.lg[widgetIndex],chartInfoMap.recentQuery)
+                console.log('widgetIndex', currentLayouts.lg[widgetIndex], chartInfoMap.recentQuery)
                 // layouts.lg 배열에서 원래 객체를 교체합니다.
                 const updatedLgArray = [
                     ...currentLayouts.lg.slice(0, widgetIndex),
                     updatedWidget,
                     ...currentLayouts.lg.slice(widgetIndex + 1)
                 ];
-    
+
                 // layouts 객체를 복사하고 lg 배열을 업데이트합니다.
                 const updatedLayouts = {
                     ...currentLayouts,
                     lg: updatedLgArray
                 };
-              //  layouts.lg=updatedLayouts;
+                //  layouts.lg=updatedLayouts;
                 setCurrentLayouts(updatedLayouts);
                 console.log('chartInfoMap has changed:', updatedWidget, chartInfoMap);
             }
         }
     }, [chartInfoMap, layouts, selectedWidgetKey, setCurrentLayouts]);
-    
+
 
     const handleWidgetClick = (widgetData) => {
-        console.log('handleWidgetClick',widgetData)
-      
+        console.log('handleWidgetClick', widgetData)
+
         setIsModalOpen(true);
         setSelectedWidgetKey(widgetData);
     };
@@ -138,7 +141,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
     };
 
     const handleSave = () => {
-      //  layouts.lg=currentLayouts;
+        //  layouts.lg=currentLayouts;
         setGridLayout(currentLayouts.lg);
         setIsModalOpen(false);
     };
@@ -176,7 +179,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
         };
     }, []);
 
-    const renderWidget = (itemKey: string, QuerryInfo:Array = {}) => {
+    const renderWidget = (itemKey: string, QuerryInfo: Array = {}) => {
         const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
 
         if (!widgetRefs.current[itemKey]) {
@@ -184,8 +187,8 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
         }
         const widgetRef = widgetRefs.current[itemKey];
         const chartInfo = chartInfoMap[itemKey] || { type: 'default' };
-        console.log('widgetDimensions',QuerryInfo,QuerryInfo.type,itemKey)
-       // if(QuerryInfo)chartInfo.type = 'Table'
+        console.log('widgetDimensions', QuerryInfo, QuerryInfo.type, itemKey)
+        // if(QuerryInfo)chartInfo.type = 'Table'
         switch (QuerryInfo.type) {
             case 'a':
                 return <Styled.WidgetCoral>위젯 A</Styled.WidgetCoral>;
@@ -193,18 +196,24 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                 return <Styled.WidgetGreen>위젯 B</Styled.WidgetGreen>;
             case 'line':
                 return (
-                    <Styled.Widget ref={widgetRef}>
-                        <div style={{ width: '100%', height: '100%' }}>
-                            <LineChart
-                                width={widgetDimensions.width}
-                                height={widgetDimensions.height}
-                                key={itemKey}
-                                widgetRef={widgetRef}
-                                isResized={isResized}
-                                linecharttype={'area'}
-                            />
-                        </div>
-                    </Styled.Widget>
+                    <div>
+                        {QuerryInfo && QuerryInfo.formattedQuery &&
+
+                            <Styled.Widget ref={widgetRef}>
+                                <div style={{ width: '100%', height: '100%' }}>
+                                    <LineChart
+                                        query={QuerryInfo}
+                                        width={widgetDimensions.width}
+                                        height={widgetDimensions.height}
+                                        widgetRef={widgetRef}
+                                        isResized={isResized}
+                                        colorScale="blue"
+                                        margin={{ top: 20, right: 20, bottom: 30, left: 40 }}
+                                    />
+                                </div>
+
+                            </Styled.Widget>
+                        }       </div>
                 );
             case 'd':
                 return (
@@ -228,26 +237,26 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                     </Styled.Widget>
                 );
             case 'table':
-            //  const tablec = [
-            //     { Header: 'timestamp', accessor: 'timestamp', Cell: ({ value }) => formatDate(value) },
-            //     { Header: 'airline', accessor: 'airline' },
-            //     { Header: 'srcAirportId', accessor: 'srcAirportId' },
-            //     { Header: 'stops', accessor: 'stops' },
-            // ];
-            return (
-                <div>
-                {QuerryInfo && QuerryInfo.formattedQuery &&
-                <Styled.Widget ref={widgetRef}>
-                      <QueryDslDataTable
-                        widgetRef={widgetRef}
-                        isResized={isResized}
-                        index="your-index" // 필요에 따라 인덱스 설정
-                        query={QuerryInfo} // 쿼리 전달
-                    />
-                </Styled.Widget>
-                }
-                </div>
-            );
+                //  const tablec = [
+                //     { Header: 'timestamp', accessor: 'timestamp', Cell: ({ value }) => formatDate(value) },
+                //     { Header: 'airline', accessor: 'airline' },
+                //     { Header: 'srcAirportId', accessor: 'srcAirportId' },
+                //     { Header: 'stops', accessor: 'stops' },
+                // ];
+                return (
+                    <div>
+                        {QuerryInfo && QuerryInfo.formattedQuery &&
+                            <Styled.Widget ref={widgetRef}>
+                                <QueryDslDataTable
+                                    widgetRef={widgetRef}
+                                    isResized={isResized}
+                                    index="your-index" // 필요에 따라 인덱스 설정
+                                    query={QuerryInfo} // 쿼리 전달
+                                />
+                            </Styled.Widget>
+                        }
+                    </div>
+                );
             case 'GlobeTable':
                 const columns = [
                     { Header: 'timestamp', accessor: 'timestamp', Cell: ({ value }) => formatDate(value) },
@@ -309,7 +318,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
             >
                 {(currentLayouts.lg || []).map((item) => (
                     <div key={item.i} id={item.i} onClick={() => handleWidgetClick(item.i)}>
-                        {renderWidget(item.i,item.ChartInfo)}
+                        {renderWidget(item.i, item.ChartInfo)}
                     </div>
                 ))}
             </ResponsiveGridLayout>
@@ -321,7 +330,7 @@ const WidgetGrid: React.FC<LayoutsProps> = ({ layouts, setGridLayout }) => {
                     selectOptions={chartInfoMap}
                     onChange={handleChange}
                     selectedWidgetKey={selectedWidgetKey}
-                    
+
                 />
             </HeaderModal>
         </>

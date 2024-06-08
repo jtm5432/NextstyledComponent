@@ -44,8 +44,9 @@ const QueryDslDataTable: React.FC<WidgetChartProps> = ({ width = 100, height = 1
     // }));
     useEffect(() => {
         console.log('transformedData',data)
-        if (data && data.data) {
-            const transformedData = data.data.map((hit: any) => ({
+        const readdata = data?.data;
+        if (readdata && readdata.data) {
+            const transformedData = readdata.data.map((hit: any) => ({
                 id: hit._id,
                 ...hit._source
             }));

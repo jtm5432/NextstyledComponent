@@ -157,39 +157,36 @@ const fetchDashboardBarcolChart = async (sqlQuery) => {
       throw new Error("Failed to fetch data");
     }
   };
-  const SavegridLayouts = async ({
-    id,
-    gridLayout,
-    updatedData,
-  }: {
-    id: string;
-    gridLayout: {
-      i: string;
-      x: number;
-      y: number;
-      w: number;
-      h: number;
-    }[];
-    updatedData: { [key: string]: string };
-  }) => {
-     const endpoint = "https://localhost:8081/reportdata";
-      // params 정의
-      const params = {
-        operator: "modifyDoc",
-        index: "nextdashboard",
-        id: id,
-        gridLayout:  JSON.stringify(gridLayout),
-        updatedData: updatedData, // updatedData 추가
-      };
-    
-      const response = await axios.post('/api/axios', { endpoint, params });
-      console.log('response.dataSavegridLayouts', SavegridLayouts,gridLayout);
-      if (response.status === 200) {
-        return JSON.stringify(response.data);
-      } else {
-        throw new Error("Failed to fetch data");
-      }
-  }
+const SavegridLayouts = async ({
+  id,
+  gridLayout,
+}: {
+  id: string;
+  gridLayout: {
+    i: string;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }[];
+}) => {
+   const endpoint = "https://localhost:8081/reportdata";
+    // params 정의
+    const params = {
+      operator: "modifyDoc",
+      index:"nextdashboard",
+      id: id,
+      gridLayout: gridLayout
+    };
+  
+    const response = await axios.post('/api/axios', { endpoint, params });
+       console.log('response.dataSavegridLayouts',response)
+    if (response.status === 200) {
+      return JSON.stringify(response.data);
+    } else {
+      throw new Error("Failed to fetch data");
+    }
+}
 const fetchSavedData = async (id) => {
 
   console.log('fetchSavedData',id)
@@ -242,9 +239,9 @@ const getDataByQueryDSL = async (searchParams) => {
   };
   
   const response = await axios.post('/api/axios', { endpoint, params });
-  console.log('searchParams',response)
+  console.log('searchParams',response.data)
   
-  return response; // 저장된 데이터 반환
+  return response.data; // 저장된 데이터 반환
 }
 
 

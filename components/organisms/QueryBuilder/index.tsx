@@ -43,7 +43,7 @@ const initialQuery: Query = {
 };
 
 const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQuery, fields, onQueryChange, selectedWidgetKey }) => {
-  console.log('initialQuery', initialQuery)
+
   const operatorMappings = {
     date: [
       { name: 'between', label: 'Between' },
@@ -75,6 +75,7 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
   const [chartInfoMap, setChartInfoMap] = useRecoilState(chartInfoMapState);
   const [queryState, setQueryState] = useState<Query>(initialQuery.QuerydslProp);
   const LayoutMap = useRecoilValue(CurrentLayoutState);
+  const [formState, setFormState] = useState({});
 
   const { data: savedQueries, refetch: refetchSavedQueries } = useQuery(['loadQueryDsl'], () => loadQueryDsl());
 
@@ -88,37 +89,52 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
     { name: 'model', label: 'model', operators: getFeildBYName },
     { name: 'trainingdata', label: 'trainingdata', operators: getFeildBYName }
   ];
-  const ChartFields: Field[] = [
-    { name: 'honeyComb', label: '벌집', operators: getFeildBYName },
-    { name: 'table', label: '테이블', operators: getFeildBYName }
+    const ChartFields: Field[] = [
+    { name: 'honeyComb', label: '벌집', },
+    { name: 'table', label: '테이블', },
+    { name: 'line', label: '라인', },
+    
+  
+  
   ];
   const addAggregation = () => {
     // 기본적으로 간단한 집계 유형을 추가하고, 특정 유형에 필요한 추가 설정은 사용자가 집계 유형을 변경할 때 처리
     setAggregations([...aggregations, { field: '', type: 'sum' }]);
   };
+  //console.log('LayoutMap',selectedWidgetKey, LayoutMap.lg.find(e=>e.i ===selectedWidgetKey))
+  console.log('fields',)
+
   const removeAggregation = (index) => {
     const newAggs = [...aggregations];
     newAggs.splice(index, 1);
     setAggregations(newAggs);
   };
-// 사용자가 집계 유형을 변경할 때 필요한 추가 설정을 동적으로 제공
-const handleAggregationChange = (index, field, value) => {
-  const newAggs = [...aggregations];
-  if (index < 0 || index >= newAggs.length) {
-    console.error('Invalid index');
-    return;
-  }
+  // 사용자가 집계 유형을 변경할 때 필요한 추가 설정을 동적으로 제공
+  const handleAggregationChange = (index, field, value) => {
+    const newAggs = [...aggregations];
+    if (index < 0 || index >= newAggs.length) {
+        console.error('Invalid index');
+        return;
+    }
 
-  const updatedAgg = { ...newAggs[index], [field]: value };
+    const updatedAgg = { ...newAggs[index], [field]: value };
 
-  // date_histogram을 선택하는 경우에만 기본 간격을 설정
-  if (field === 'type' && value === 'date_histogram') {
-    updatedAgg.interval = updatedAgg.interval || 'day';  // 이미 설정된 간격이 없는 경우 기본값 설정
-  }
+    // date_histogram을 선택하는 경우에만 기본 간격을 설정
+    if (field === 'type' && value === 'date_histogram') {
+        updatedAgg.interval = updatedAgg.interval || 'day';  // 이미 설정된 간격이 없는 경우 기본값 설정
+    }
 
-  newAggs[index] = updatedAgg;
-  setAggregations(newAggs);
+    newAggs[index] = updatedAgg;
+    console.log('handleAggregationChange', newAggs);
+    setAggregations(newAggs);
+
+    // queryRef.current 업데이트 후 handleQueryChange 호출
+    handleQueryChange(queryRef.current);
 };
+useEffect(() => {
+  // Aggregations 변경 시 queryRef 업데이트
+  handleQueryChange(queryRef.current);
+}, [aggregations]);
 
   useEffect(() => {
     const getDisplayField = allFields.find(e => e.name === selectedField);
@@ -145,6 +161,15 @@ const handleAggregationChange = (index, field, value) => {
       setFieldData([]);
     }
   }, [selectedField]);
+
+  useEffect(() => {
+    if (initialQuery) {
+      const initialFormState = {};
+      if (initialQuery.index) initialFormState['selectedField'] = initialQuery.index;
+      if (initialQuery.type) initialFormState['ChartField'] = initialQuery.type;
+      setFormState(initialFormState);
+    }
+  }, [initialQuery]);
 
   // Elasticsearch 쿼리 포맷터 함수
 
@@ -230,10 +255,9 @@ const handleAggregationChange = (index, field, value) => {
     });
     return aggsQuery;
   }
-
-
   const handleQueryChange = useCallback((newQuery: Query) => {
-
+    console.log('handleQueryChange called with:', newQuery);
+    
     queryRef.current = newQuery;
     const formattedQuery = formatElasticsearchGroup(newQuery);
     const aggregationQuery = createAggregationQuery();
@@ -241,27 +265,40 @@ const handleAggregationChange = (index, field, value) => {
     console.log("Query changed:", formattedQuery, aggregationQuery);
     setQueryState(newQuery);
     setChartInfoMap((prevChartInfoMap) => ({
-      ...prevChartInfoMap,
-      ["recentQuery"]: {
-        ...prevChartInfoMap[selectedField],
-        QuerydslProp: newQuery,
-        formattedQuery: formattedQuery,
-        aggregationQuery:aggregationQuery,
-        index: selectedField,
-        type: ChartField,
-        key: selectedWidgetKey,
-      },
+        ...prevChartInfoMap,
+        ["recentQuery"]: {
+            ...prevChartInfoMap[selectedField],
+            QuerydslProp: newQuery,
+            formattedQuery: formattedQuery,
+            aggregationQuery: aggregationQuery,
+            index: selectedField,
+            type: ChartField,
+            key: selectedWidgetKey,
+            formState: formState,
+        },
     }));
-  }, [selectedField, setChartInfoMap, ChartField, aggregations]);
+}, [selectedField, setChartInfoMap, ChartField, aggregations]);
 
-  const handleFieldChange = (event) => {
+  const handleInputChange = (event, field) => {
+    const { value } = event.target;
+    setFormState(prevState => ({
+      ...prevState,
+      [field]: value
+    }));
+
+    console.log('chartInfoMap', 'name', chartInfoMap)
+  };
+  const handleFieldChange = (event, field) => {
     const newField = event.target.value;
+   // handleInputChange(event, field);
     setSelectedField(newField);
   };
 
-  const handleChartChange = (event) => {
+  const handleChartChange = (event, field) => {
     const newField = event.target.value;
+   // handleInputChange(event, field);
     setChartField(newField);
+
   }
   const onClose = () => {
     setIsOpen(false);
@@ -355,7 +392,7 @@ const handleAggregationChange = (index, field, value) => {
       <label htmlFor="query-name">Query Name:</label>
       <DatalistInput
         id="query-name"
-        value={queryName}
+        value={formState?formState.queryName : queryName}
         onChange={(value) => setQueryName(value)}
         options={[]}
       />
@@ -364,7 +401,7 @@ const handleAggregationChange = (index, field, value) => {
         <select
           id="field-selector"
           value={selectedField}
-          onChange={handleFieldChange}
+          onChange={(event) => handleFieldChange(event)}
           disabled={loading}
         >
           <option value="">Select a field</option>
@@ -378,7 +415,7 @@ const handleAggregationChange = (index, field, value) => {
         <select
           id="chart-selector"
           value={ChartField}
-          onChange={handleChartChange}
+          onChange={(event) => handleChartChange(event)}
           disabled={loading}
         >
           <option value="">Select a Chart</option>

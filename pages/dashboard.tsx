@@ -17,6 +17,9 @@ import HeaderModal from '../components/templates/HeaderModal';
 import ContentModal from '../components/organisms/ContentModal';
 import {saveDataToLocalStorage ,SavegridLayouts,fetchSavedData  } from '../app/queries/providerDashboard';
 import {SaveData ,GridLayout } from '../types/dashboardTypes';
+import { CurrentLayoutState } from '../app/state/CurrentLayout';
+import { useRecoilValue } from 'recoil';
+
 
 interface QueryDataItem {
     id?: string;
@@ -53,6 +56,7 @@ const Main: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isWidgetClicked, setIsWidgetClicked] = useState(false);
     const queryClient = new QueryClient();
+    //const LayoutMap = useRecoilValue(CurrentLayoutState);
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -85,6 +89,11 @@ const Main: React.FC = () => {
         }
     }, [querydata]);
 
+    /**
+     * ContextModal에서 대시보드의 값을 저장할때 사용하는 함수
+     * @param updatedData - currentgridLayout
+     * @returns 
+     */
     const handleSave = (updatedData: { [key: string]: string; }) => {
         // console.log('updatedData',updatedData)
         let { title, description, selectedIconName } = updatedData;
@@ -96,6 +105,9 @@ const Main: React.FC = () => {
             description = '';
         }
 
+        console.log('upDatedData',updatedData);
+
+        /*
         // 로컬 스토리지에서 기존의 데이터 불러오기
         const savedDataString = localStorage.getItem('data');
         let savedDataMap: Record<string, { title: string, description: string, selectedIconName: string, gridLayout: string }> = {};
@@ -111,22 +123,25 @@ const Main: React.FC = () => {
         // 변경된 데이터 맵을 다시 로컬 스토리지에 저장
         localStorage.setItem('data', JSON.stringify(savedDataMap));
        // setSavedData(savedDataMap);
-
+        */
         setIsModalOpen(false);
+
+        handleSaveGridLayout(title, gridLayout, updatedData);
+
     };
  
     //React Query: useMutation을 사용하여 데이터 저장
     const saveGridLayoutMutation = useMutation(
-        ({ id, gridLayout }: { id: string; gridLayout: GridLayout[] }) => SavegridLayouts({ id, gridLayout }),
+        ({ id, gridLayout, updatedData }: { id: string; gridLayout: GridLayout[]; updatedData: { [key: string]: string; } }) => SavegridLayouts({ id, gridLayout, updatedData }),
         {
-          onSuccess: () => {
-            alert("Grid layout이 성공적으로 저장되었습니다.");          },
-          onError: (error) => {
-            alert("Grid layout 저장 중 오류가 발생했습니다: " + error);
-          }
+            onSuccess: () => {
+                alert("Grid layout이 성공적으로 저장되었습니다.");
+            },
+            onError: (error) => {
+                alert("Grid layout 저장 중 오류가 발생했습니다: " + error);
+            }
         }
-      );
-    const saveMutation: UseMutationResult<SaveData, Error, SaveData> = useMutation(
+    ); saveMutation: UseMutationResult<SaveData, Error, SaveData> = useMutation(
         saveDataToLocalStorage, 
         {
           onSuccess: (data) => {
@@ -151,11 +166,11 @@ const Main: React.FC = () => {
         
      
     // }, []);
-    // gridLayout을 서버에 저장하는 함수
-    const handleSaveGridLayout = (id:string) => {
+// gridLayout을 서버에 저장하는 함수
+    const handleSaveGridLayout = (id: string, gridLayout: GridLayout[], updatedData: { [key: string]: string; }) => {
         // 현재 gridLayout 상태를 사용하여 mutation 실행
-        console.log('handleSaveGridLayout',id,gridLayout)
-       if(id)saveGridLayoutMutation.mutate({ id: id, gridLayout: gridLayout });
+        console.log('handleSaveGridLayout', id, gridLayout, updatedData);
+        if (id) saveGridLayoutMutation.mutate({ id: id, gridLayout: gridLayout, updatedData: updatedData });
     };
 
     console.log('savedData',savedData)

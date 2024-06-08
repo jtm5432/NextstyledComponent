@@ -1,63 +1,96 @@
-import React, { useRef, useEffect } from 'react';
-import * as d3 from 'd3';
+import React, { useRef, useEffect, useState } from 'react';
+import bb, { line } from 'billboard.js';
+import 'billboard.js/dist/billboard.css';
+import { useQuery } from 'react-query';
+import { getDataByQueryDSL } from '../../../app/queries/providerDashboard';
 
 interface LineChartData {
-  category: string;
-  display: number;
-  time: number; // Assuming time is in Unix timestamp format
-  tooltip: string;
-  x: number;
-  y: number;
+    category: string;
+    display: number;
+    time: number; // Assuming time is in Unix timestamp format
+    tooltip: string;
+    x: number;
+    y: number;
 }
+
 interface LineChartProps {
-    data: any[]; // RawSocketData can be any type
+    query: any; // OpenSearch query
     width: number;
     height: number;
     colorScale: string;
     margin: { top: number; right: number; bottom: number; left: number };
 }
 
-const LineChart: React.FC<LineChartProps> = ({ data, width, height, colorScale, margin }) => {
-  const ref = useRef<SVGSVGElement>(null);
+const LineChart: React.FC<LineChartProps> = ({ query, width, height, colorScale, margin }) => {
+    const chartRef = useRef<HTMLDivElement>(null);
+    const [chartData, setChartData] = useState<LineChartData[]>([]);
+    console.log('drawlinechart',query,width,height,colorScale)
+    const SearchParams = {
+        index: query.index,
+        QueryDsl: query.formattedQuery,
+        aggregationQuery: query.aggregationQuery
+    };
 
-  useEffect(() => {
-    if (!data || data.length === 0) return;
-    console.log('LineChartdata', data)
-    const svg = d3.select(ref.current);
-    svg.selectAll("*").remove(); // Clear svg content before adding new elements
+    const { data, isLoading, error } = useQuery(['getDataByQueryDSL', query], () => getDataByQueryDSL(SearchParams), {
+        refetchOnWindowFocus: false,
+        enabled: !!query // 쿼리가 존재할 때만 실행되도록 설정
+    });
 
-    // Assuming 'time' is a Unix timestamp, converting it to a JavaScript Date object
-    const xScale = d3.scaleTime()
-      .domain(d3.extent(data, d => new Date(d.time)) as [Date, Date])
-      .range([margin.left, width - margin.right]);
+    useEffect(() => {
+        console.log('linechartData',data)
+        if (data && data.data ) {
+            let transformedData; 
 
-    const yScale = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.y) as number])
-      .range([height - margin.bottom, margin.top]);
+          //   = data.data.map((hit: any) => ({
+          //     x: new Date(hit._source.time), // Assuming time field is available in the data
+          //     y: hit._source.value // Assuming value field is available in the data
+          // }));
+            setChartData(transformedData);
+        }
+    }, [data]);
 
-    const line = d3.line<LineChartData>()
-      .x(d => xScale(new Date(d.time)))
-      .y(d => yScale(d.y));
+    useEffect(() => {
+        if (!chartData || chartData.length === 0) return;
 
-    svg.append("path")
-      .datum(data)
-      .attr("fill", "none")
-      .attr("stroke", colorScale)
-      .attr("stroke-width", 2)
-      .attr("d", line);
+        bb.generate({
+            bindto: chartRef.current,
+            data: {
+                json: chartData,
+                keys: {
+                    x: "x",
+                    value: ["y"]
+                },
+                type: line()
+            },
+            axis: {
+                x: {
+                    type: "timeseries",
+                    tick: {
+                        format: "%Y-%m-%d %H:%M:%S"
+                    }
+                }
+            },
+            size: {
+                width: width,
+                height: height
+            },
+            color: {
+                pattern: [colorScale]
+            }
+        });
+    }, [chartData, width, height, colorScale]);
 
-    // Add Axes
-    svg.append("g")
-      .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(d3.axisBottom(xScale));
-
-    svg.append("g")
-      .attr("transform", `translate(${margin.left},0)`)
-      .call(d3.axisLeft(yScale));
-
-  }, [data, width, height, colorScale, margin]);
-
-  return <svg ref={ref} width={width} height={height} />;
+    return (
+        <div>
+            {isLoading ? (
+                <p>Loading data...</p>
+            ) : error ? (
+                <p>Error loading data</p>
+            ) : (
+                <div ref={chartRef}></div>
+            )}
+        </div>
+    );
 };
 
 export default LineChart;

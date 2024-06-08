@@ -32,7 +32,7 @@ const Navbar: React.FC<{
 
 
     const convertAndValidateGridLayoutItem = (item: any): GridLayout | null => {
-        const { i, x, y, w, h } = item;
+        const { i, x, y, w, h , ChartInfo } = item;
     
         // Convert to numbers and validate
         const convertedX = Number(x);
@@ -41,17 +41,18 @@ const Navbar: React.FC<{
         const convertedH = Number(h);
     
         if (!isNaN(convertedX) && !isNaN(convertedY) && !isNaN(convertedW) && !isNaN(convertedH)) {
-            return { i, x: convertedX, y: convertedY, w: convertedW, h: convertedH };
+            return { i, x: convertedX, y: convertedY, w: convertedW, h: convertedH ,ChartInfo:ChartInfo};
         }
         return null; 
     };
     
     const handleItemClickWithGridLayout = (data: any) => {
+        console.log('handleItemClickWithGridLayout',data);
+
         if (data.gridLayout) {
-            console.log('handleItemClickWithGridLayout', data.gridLayout);
             
             const convertedGridLayout = data.gridLayout.map(item => convertAndValidateGridLayoutItem(item)).filter(item => item !== null);
-    
+
             if (convertedGridLayout.length === data.gridLayout.length) {
                 setGridLayout(convertedGridLayout);
                 setSelectedId(data.id);

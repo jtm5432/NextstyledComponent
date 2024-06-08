@@ -76,7 +76,8 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({
   const toggleQueryBuilderModal = () => {
     setIsQueryBuilderModalOpen(!isQueryBuilderModalOpen);
   };
-
+  const widget = LayoutMap.lg.find(e => e.i === selectedWidgetKey).ChartInfo;
+  console.log('widget',widget,LayoutMap)
   // LayoutMap.lg에서 selectedWidgetKey와 일치하는 항목을 찾습니다.
   const selectedWidget = LayoutMap.lg.find(widget => widget.i === selectedWidgetKey);
   console.log('selectedWidget',selectedWidget)
@@ -89,7 +90,7 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({
       />
       <QueryBuilderComponent
         initialQuery={selectedWidget?.ChartInfo || { combinator: 'and', rules: [] }}
-        fields={[]}
+        fields={widget?.formState? widget.formState : []}
         onQueryChange={(query) => {
           setFormData(prev => ({ ...prev, QuerydslProp: query }));
         }}

@@ -3,6 +3,7 @@ export interface SaveData {
     description: string;
     selectedIconName?: string;
     gridLayout: string;
+    ChartInfo: any;
   }
 
   export interface GridLayout {
@@ -11,5 +12,6 @@ export interface SaveData {
     y: number;  // 그리드 내의 y 위치 (보통 행 번호)
     w: number;  // 아이템의 너비
     h: number;  // 아이템의 높이
+    ChartInfo: ChartInfo; //그리드 차트 정보
   }
   

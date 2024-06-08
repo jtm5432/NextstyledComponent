@@ -1,31 +1,33 @@
-// components/molecules/PieChart.tsx
 import React, { useEffect, useRef } from 'react';
-import * as d3 from 'd3';
+import bb from 'billboard.js';
+import 'billboard.js/dist/billboard.css';
 
 interface PieChartProps {
     width: number;
     height: number;
-    data: [any];
-
+    data: any[];
 }
 
 const PieChart: React.FC<PieChartProps> = ({ data, width, height }) => {
-
-    const ref = useRef(null);
+    const chartRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (data && ref.current) {
-            const svg = d3.select(ref.current)
-                .attr("width", width)
-                .attr("height", height);
-
-            // Set up your pie chart rendering logic here
-            // Example: svg.append(...) and other D3 operations
-
+        if (data && chartRef.current) {
+            bb.generate({
+                bindto: chartRef.current,
+                data: {
+                    columns: data.map(d => [d.label, d.value]),
+                    type: "pie"
+                },
+                size: {
+                    width: width,
+                    height: height
+                }
+            });
         }
     }, [data, width, height]);
 
-    return <svg ref={ref}></svg>;
+    return <div ref={chartRef}></div>;
 };
 
 export default PieChart;
