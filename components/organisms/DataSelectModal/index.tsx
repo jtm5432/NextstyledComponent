@@ -80,7 +80,7 @@ const DataSelectModal: React.FC<DataSelectModalProps> = ({
   console.log('widget',widget,LayoutMap)
   // LayoutMap.lg에서 selectedWidgetKey와 일치하는 항목을 찾습니다.
   const selectedWidget = LayoutMap.lg.find(widget => widget.i === selectedWidgetKey);
-  console.log('selectedWidget',selectedWidget)
+  console.log('selectedWidget',chartInfoMap)
   return (
     <div>
       <DropDown

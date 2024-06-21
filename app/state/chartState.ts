@@ -50,5 +50,12 @@ export const chartInfoMapState = atom<Record<string, ChartProperties>>({
     'GlobeTable': { type: 'GlobeTable', otherProp: 'value5' },
     'GlobeTableSecond': { type: 'GlobeTableSecond', otherProp: 'value6' },
     'D3Chart': { type: 'D3Chart', otherProp: 'value7' },
+    'honeyComb':{
+        type:'honeyComb',
+        otherProp:{
+          
+        }
+
+    }
   },
 });

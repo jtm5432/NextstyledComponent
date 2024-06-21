@@ -82,8 +82,10 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
   const queryBuilderRef = useRef(null); // QueryBuilder 인스턴스를 참조하기 위해 useRef 사용
 
   const [showSavedQueries, setShowSavedQueries] = useState(false); // 쿼리 리스트 
-  const [aggregations, setAggregations] = useState([]);
-  const aggregationTypes = ['sum', 'average', 'min', 'max', 'value_count', 'date_histogram'];
+  
+  console.log('initialQuery',initialQuery)
+  
+  const aggregationTypes = ['sum', 'average', 'min', 'max', 'value_count', 'date_histogram', 'cardinality'];
 
   const allFields: Field[] = [
     { name: 'model', label: 'model', operators: getFeildBYName },
@@ -97,12 +99,15 @@ const QueryBuilderComponent: React.FC<QueryBuilderComponentProps> = ({ initialQu
   
   
   ];
+
+  const initialAggregations =  initialQuery.aggregations || [];
+  const [aggregations, setAggregations] = useState(initialAggregations);
   const addAggregation = () => {
     // 기본적으로 간단한 집계 유형을 추가하고, 특정 유형에 필요한 추가 설정은 사용자가 집계 유형을 변경할 때 처리
     setAggregations([...aggregations, { field: '', type: 'sum' }]);
   };
   //console.log('LayoutMap',selectedWidgetKey, LayoutMap.lg.find(e=>e.i ===selectedWidgetKey))
-  console.log('fields',)
+  console.log('fields',fieldData)
 
   const removeAggregation = (index) => {
     const newAggs = [...aggregations];
@@ -238,12 +243,34 @@ useEffect(() => {
   const createAggregationQuery = () => {
     const aggsQuery = {};
     aggregations.forEach(agg => {
+      const fieldType = fieldData.find(field => field.name === agg.nestedField)?.type;
+
       if (agg.field && agg.type) {
         if (agg.type === 'date_histogram') {
           aggsQuery[`${agg.type}_${agg.field}`] = {
             date_histogram: {
               field: agg.field,
-              calendar_interval: agg.interval // 사용자가 선택한 간격
+              calendar_interval: agg.interval // 사용자 정의 간격
+            },
+            aggs: {
+              unique_values: {
+                terms: {
+                  field:fieldType&&fieldType==='text'? `${agg.nestedField}.keyword` : agg.nestedField || agg.field
+                },
+                aggs: {
+                  top_status_hits: {
+                    top_hits: {
+                      size: 10 // 각 그룹에 대해 반환할 문서의 최대 개수
+                    }
+                  }
+                }
+              }
+            }
+          };
+        } else if (agg.type === 'cardinality') {
+          aggsQuery[`${agg.type}_${agg.field}`] = {
+            cardinality: {
+              field: agg.field
             }
           };
         } else {
@@ -254,13 +281,14 @@ useEffect(() => {
       }
     });
     return aggsQuery;
-  }
+  };
+  
   const handleQueryChange = useCallback((newQuery: Query) => {
-    console.log('handleQueryChange called with:', newQuery);
     
     queryRef.current = newQuery;
     const formattedQuery = formatElasticsearchGroup(newQuery);
     const aggregationQuery = createAggregationQuery();
+    console.log('handleQueryChange called with:', newQuery);
 
     console.log("Query changed:", formattedQuery, aggregationQuery);
     setQueryState(newQuery);
@@ -271,6 +299,7 @@ useEffect(() => {
             QuerydslProp: newQuery,
             formattedQuery: formattedQuery,
             aggregationQuery: aggregationQuery,
+            aggregations:aggregations,
             index: selectedField,
             type: ChartField,
             key: selectedWidgetKey,
@@ -455,6 +484,14 @@ useEffect(() => {
                   <option value="week">Week</option>
                   <option value="month">Month</option>
                   <option value="year">Year</option>
+                </select>
+              )}
+                {agg.type === 'date_histogram' && (
+                <select value={agg.nestedField} onChange={e => handleAggregationChange(index, 'nestedField', e.target.value)}>
+                  <option value="">Select nested field</option>
+                  {fieldData.map(field => (
+                    <option key={field.name} value={field.name}>{field.label || field.name}</option>
+                  ))}
                 </select>
               )}
               <button onClick={() => removeAggregation(index)}>Remove</button>
