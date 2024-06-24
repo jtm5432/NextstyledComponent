@@ -54,25 +54,31 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ layouts, setGridLayout, openInf
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [infoBar, setInfoBar] = useRecoilState(infoBarState);
 
-    const handleResizeStop = useCallback(
-        (layout, oldItem, newItem) => {
-            setGridLayout([...layout]);
-            debouncedHandleResizeStop();
-        },
-        [debouncedHandleResizeStop, setGridLayout]
-    );
-
     const handleDragStop = useCallback(
         (layout, oldItem, newItem) => {
             const updatedLayout = layout.map(item => {
                 const matchingCurrentLayout = currentLayouts.lg.find(l => l.i === item.i);
                 return matchingCurrentLayout ? { ...item, ChartInfo: matchingCurrentLayout.ChartInfo } : item;
             });
-
+    
             setGridLayout([...updatedLayout]);
         },
         [setGridLayout, currentLayouts]
     );
+    
+    const handleResizeStop = useCallback(
+        (layout, oldItem, newItem) => {
+            const updatedLayout = layout.map(item => {
+                const matchingCurrentLayout = currentLayouts.lg.find(l => l.i === item.i);
+                return matchingCurrentLayout ? { ...item, ChartInfo: matchingCurrentLayout.ChartInfo } : item;
+            });
+    
+            setGridLayout([...updatedLayout]);
+            debouncedHandleResizeStop();
+        },
+        [debouncedHandleResizeStop, setGridLayout, currentLayouts]
+    );
+    
 
     useEffect(() => {
         setCurrentLayouts(layouts);
@@ -111,8 +117,9 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ layouts, setGridLayout, openInf
     }, [chartInfoMap, layouts, selectedWidgetKey, setCurrentLayouts]);
 
     const handleWidgetClick = (widgetData) => {
-        setIsModalOpen(true);
         setSelectedWidgetKey(widgetData);
+        setIsModalOpen(true);
+
     };
 
     const handleCloseModal = () => {
@@ -160,13 +167,13 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ layouts, setGridLayout, openInf
 
     const renderWidget = (itemKey: string, QuerryInfo: Array = {}) => {
         const widgetDimensions = dimensions[itemKey] || { width: 0, height: 0 };
-
+    
         if (!widgetRefs.current[itemKey]) {
             widgetRefs.current[itemKey] = React.createRef();
         }
         const widgetRef = widgetRefs.current[itemKey];
         const chartInfo = chartInfoMap[itemKey] || { type: 'default' };
-
+    
         const handleInfoBarClick = () => {
             const content = (
                 <div>
@@ -176,12 +183,16 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ layouts, setGridLayout, openInf
             );
             setInfoBar({ isOpen: true, content });
         };
-
+    
         const title = QuerryInfo.title || "Widget Title";
         const showTitle = QuerryInfo.showTitle !== false;  // 기본값을 true로 설정
-
+    
         return (
-            <Styled.Widget ref={widgetRef}>
+            <Styled.Widget
+                ref={widgetRef}
+                style={{ zIndex: selectedWidgetKey === itemKey ? 1000 : 1 }}
+                onClick={() => handleWidgetClick(itemKey)}
+            >
                 <HeaderRow title={title} onInfoClick={handleInfoBarClick} showTitle={showTitle} />
                 <div style={{ width: '100%', height: showTitle ? 'calc(100% - 40px)' : '100%' }}>
                     {(() => {
@@ -280,7 +291,7 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ layouts, setGridLayout, openInf
             </Styled.Widget>
         );
     };
-
+    
     const selectedWidgetData = selectedWidgetKey ? chartInfoMap[selectedWidgetKey] : {};
 
     return (

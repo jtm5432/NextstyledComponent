@@ -37,7 +37,7 @@ const Main: React.FC = () => {
     const [isInfoBarOpen, setIsInfoBarOpen] = useState(false);
     const [infoBarContent, setInfoBarContent] = useState<React.ReactNode>(null);
     const queryClient = new QueryClient();
-    const { data: querydata, isLoading, error } = useQuery('savedData', fetchSavedData);
+    const { data: querydata, isLoading, error, refetch } = useQuery('savedData', fetchSavedData);
     const [savedData, setSavedData] = useState<Record<string, QueryDataItem>>({});
 
     useEffect(() => {
@@ -84,6 +84,7 @@ const Main: React.FC = () => {
         {
             onSuccess: () => {
                 alert("Grid layout이 성공적으로 저장되었습니다.");
+                refetch(); // 데이터 갱신
             },
             onError: (error) => {
                 alert("Grid layout 저장 중 오류가 발생했습니다: " + error);
@@ -105,6 +106,7 @@ const Main: React.FC = () => {
     );
 
     const handleSaveGridLayout = (id: string, gridLayout: GridLayout[], updatedData: { [key: string]: string; }) => {
+        console.log('handleSave',id,savedData,gridLayout)
         if (id) saveGridLayoutMutation.mutate({ id: id, gridLayout: gridLayout, updatedData: updatedData });
     };
 
@@ -117,7 +119,7 @@ const Main: React.FC = () => {
         <QueryClientProvider client={queryClient}>
             <div>
                 <Styled.MainContainer>
-                    <Navbar savedData={savedData} setGridLayout={setGridLayout} onSave={(id) => handleSaveGridLayout(id)} />
+                    <Navbar savedData={savedData} setGridLayout={setGridLayout} onSave={(id) => handleSaveGridLayout(id, gridLayout)} />
                     <Styled.WidgetContainer onContextMenu={(event) => handleContextMenu(show, event, setIsWidgetClicked)}>
                         <Styled.TitleArea>
                             <h2>Main Dashboard</h2>
