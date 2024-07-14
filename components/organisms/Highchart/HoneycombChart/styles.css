@@ -1,0 +1,160 @@
+.top-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(55px * 0.2); /* hexRadius를 55로 가정 */
+    font-weight: normal;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: white;
+    text-decoration: underline;
+    width: 63px; /* 최대 너비를 63px로 설정 */
+}
+
+.middle-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(55px * 0.3); /* hexRadius를 55로 가정 */
+    font-weight: bold;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.bottom-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(55px * 0.2); /* hexRadius를 55로 가정 */
+    font-weight: normal;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;  
+    width: 63px; /* 최대 너비를 63px로 설정 */
+}
+
+.legend-container {
+    display: flex;
+    justify-content: flex-start; /* 레전드를 왼쪽에 배치 */
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    pointer-events: none; /* container는 클릭이 되지 않도록 설정 */
+    z-index: 3; /* 레전드 요소가 다른 요소보다 위에 있도록 설정 */
+}
+
+.legend-left {
+    display: flex;
+    flex-direction: column; /* 레전드를 세로로 배치 */
+    align-items: flex-start;
+    pointer-events: auto; /* 레전드 내부는 클릭이 가능하도록 설정 */
+}
+
+.index-toggle {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.legend {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    pointer-events: auto; /* 레전드 내부는 클릭이 가능하도록 설정 */
+    flex-direction: column;
+    align-items: center;
+}
+
+.legend h4 {
+    margin: 0 0 10px;
+}
+
+.legend ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.legend li {
+    display: flex;
+    align-items: center;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 10px;
+}
+
+.legendModel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.legendModel ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0;
+    margin: 0 0 5px 0; /* 줄 간격 조절을 위해 margin-bottom 추가 */
+}
+
+.legend-item {
+    padding: 5px 5px; /* 패딩 추가 */
+    cursor: pointer; /* 커서 스타일 */
+    display: flex;
+    align-items: center; /* 수직 중앙 정렬 */
+}
+
+.legend-item .legend-color {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    border: 2px solid black; /* 검은색 보더 추가 */
+}
+
+.legend-item.disabled {
+    color: gray;
+    opacity: 0.5;
+}
+
+.toggle-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    margin: 0 5px;
+    z-index: 5;
+    position: relative; /* absolute에서 relative로 변경 */
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background-color 0.3s, color 0.3s, border 0.3s;
+    width: 100px;
+}
+
+.toggle-button.active {
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #007bff;
+}
+
+.toggle-button:active {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+}
+.toggle-button.trainingdata {
+    left: 120px;
+}
+
+.toggle-button.evaluationdata {
+    left: 230px;
+}

@@ -3,6 +3,7 @@ import bb, { line, Chart } from 'billboard.js';
 import 'billboard.js/dist/billboard.css';
 import { useQuery } from 'react-query';
 import { getDataByQueryDSL } from '../../../app/queries/providerDashboard';
+import styled from 'styled-components';
 
 interface LineChartData {
     category: string;
@@ -23,17 +24,29 @@ interface LineChartProps {
     margin: { top: number; right: number; bottom: number; left: number };
 }
 
-const LineChart: React.FC<LineChartProps> = ({ query, width, height, colorScale, isResized,widgetRef }) => {
+const ChartContainer = styled.div<{width: number, height: number}>`
+    width: ${({ width }) => width}px;
+    height: ${({ height }) => height}px;
+
+    .bb-axis-x text, .bb-axis-y text {
+        fill: #ffffff; /* White color for axis labels */
+    }
+
+    .bb-axis-x line, .bb-axis-y line {
+        stroke: #ffffff; /* White color for axis lines */
+    }
+`;
+
+const LineChart: React.FC<LineChartProps> = ({ query, width, height, colorScale, isResized, widgetRef }) => {
     const chartRef = useRef<HTMLDivElement>(null);
     const chartInstance = useRef<Chart | null>(null);
 
     const [chartData, setChartData] = useState<LineChartData[]>([]);
     const [chartSize, setChartSize] = useState<{ width: number, height: number }>({ width, height });
 
-    console.log('drawlinechart',query,width,height,colorScale)
     const SearchParams = {
         index: query.index,
-        QueryDsl: query.formattedQuery,
+        QueryDsl: query.QueryDsl,
         aggregationQuery: query.aggregationQuery
     };
 
@@ -43,33 +56,57 @@ const LineChart: React.FC<LineChartProps> = ({ query, width, height, colorScale,
     });
 
     useEffect(() => {
-        console.log('linechartData',data)
-        if (data && data.data&& data.data.aggregations ) {
+        console.log('linechartData', data);
+        if (data && data.data && data.data.aggregations) {
             const aggregationKey = Object.keys(data.data.aggregations)[0];
             const buckets = data.data.aggregations[aggregationKey].buckets;
-        
-            if(!buckets) return;
-            const tooltipTitle =  query.aggregations[0].nestedField?  `${query.aggregations[0].nestedField}` : ``
+
+            if (!buckets) return;
+
             const transformedData = buckets.map((bucket: any) => ({
                 x: new Date(bucket.key),
-                /** nestedField가 있으면 집계 값 안에 다른 조건이 join되어있는 상태 */
-                y:  bucket.doc_count, // unique_values.value를 사용
-                tooltip: bucket.unique_values ? 
-                    `Unique Values: ${tooltipTitle} <br>${bucket.unique_values.buckets.map((b: any) => `${b.key}: ${b.doc_count}`).join('<br>')}` : 
-                    `Count: ${bucket.doc_count}`
+                y: bucket.doc_count,
+                tooltip: bucket.unique_values
+                    ? `Unique Values:  <br>${bucket.unique_values.buckets.map((b: any) => `${b.key}: ${b.doc_count}`).join('<br>')}`
+                    : `Count: ${bucket.doc_count}`
             }));
-          //   = data.data.map((hit: any) => ({
-          //     x: new Date(hit._source.time), // Assuming time field is available in the data
-          //     y: hit._source.value // Assuming value field is available in the data
-          // }));
+
+            // 데이터가 하나일 경우 빈 데이터 포인트 추가
+            if (transformedData.length === 1) {
+                const singlePoint = transformedData[0];
+                transformedData.push({ x: new Date(singlePoint.x.getTime() + 86400000), y: 0, tooltip: 'No data' });
+            }
+
             setChartData(transformedData);
         }
     }, [data]);
 
+    const updateChartSize = () => {
+        if (widgetRef && widgetRef.current) {
+            const { clientWidth, clientHeight } = widgetRef.current;
+            setChartSize({ width: clientWidth, height: clientHeight });
+        } else {
+            setChartSize({ width, height });
+        }
+    };
+
+    useEffect(() => {
+        updateChartSize();
+        window.addEventListener('resize', updateChartSize);
+        return () => {
+            window.removeEventListener('resize', updateChartSize);
+        };
+    }, [widgetRef, width, height]);
+
     useEffect(() => {
         if (!chartData || chartData.length === 0) return;
-        if(!bb||!chartRef.current) return;
-        bb.generate({
+        if (!bb || !chartRef.current) return;
+
+        if (chartInstance.current) {
+            chartInstance.current.destroy(); // 기존 차트를 파괴
+        }
+
+        chartInstance.current = bb.generate({
             bindto: chartRef.current,
             data: {
                 json: chartData,
@@ -83,13 +120,18 @@ const LineChart: React.FC<LineChartProps> = ({ query, width, height, colorScale,
                 x: {
                     type: "timeseries",
                     tick: {
-                        format: "%Y-%m-%d %H:%M:%S"
+                        format: "%Y-%m-%d"
+                    }
+                },
+                y: {
+                    tick: {
+                        format: "d"
                     }
                 }
             },
             size: {
-                width: width,
-                height:  height,
+                width: chartSize.width,
+                height: chartSize.height,
             },
             color: {
                 pattern: [colorScale]
@@ -101,8 +143,8 @@ const LineChart: React.FC<LineChartProps> = ({ query, width, height, colorScale,
                 }
             }
         });
-    }, [chartData,widgetRef, isResized, colorScale]);
 
+    }, [chartData, widgetRef, isResized, colorScale, chartSize]);
 
     return (
         <div>
@@ -111,7 +153,7 @@ const LineChart: React.FC<LineChartProps> = ({ query, width, height, colorScale,
             ) : error ? (
                 <p>Error loading data</p>
             ) : (
-                <div ref={chartRef} style={{ width: '100%', height: '100%' }}></div>
+                <ChartContainer ref={chartRef} width={chartSize.width} height={chartSize.height}></ChartContainer>
             )}
         </div>
     );

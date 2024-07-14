@@ -1,0 +1,21 @@
+import { io } from 'socket.io-client';
+
+console.log('start')
+//const socket = io('/realtime');
+
+//const url = '/socket.io';
+const url = '/realtime';
+//const socket =  io('https://localhost:3005/', {
+const socket =  io('https://192.168.10.224', {
+//const socket =  io(url, {
+	path:'/realtime',
+	rejectUnauthorized: false,
+    reconnection: true,
+    autoConnect: true,
+    transports: ['polling', 'websocket'],
+    //transports: ['websocket'],
+    forceNew: true,
+    secure: true,
+});
+console.log('end', socket);
+export default socket;

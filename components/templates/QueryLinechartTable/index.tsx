@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactTable from '../../organisms/ReactTable';
-import { TableContainer } from './Table.styles';
+import { TableContainer } from '../QueryDslTable/Table.styles';
 import { useQueryClient, useQuery } from 'react-query';
-import { getDataByQueryDSL } from '../../../app/queries/providerDashboard';
+import { getDataByQueryDSL, AjaxCall } from '../../../app/queries/providerDashboard';
+import LineChart from '../../molecules/D3ChartTypes/LineChart';
+import AnomalyLineChart from '../../molecules/D3ChartTypes/AnomalyLineChart';
 
 type DataRow = {
     id: number;
@@ -12,42 +14,56 @@ type DataRow = {
 interface WidgetChartProps {
     width?: number;
     height?: number;
-    widgetRef?: React.RefObject<HTMLDivElement>;
+    widgetRef?: React.RefElement<HTMLDiv>;
     isResized?: React.ComponentState;
     index: string; // OpenSearch 인덱스
     query: any; // OpenSearch 쿼리
-    column:any;
+    column: any;
 }
 
-const QueryDslDataTable: React.FC<WidgetChartProps> = ({ width = 100, height = 100, widgetRef, isResized, index, query,column }) => {
+const QueryDslDataTable: React.FC<WidgetChartProps> = ({ width = 100, height = 100, widgetRef, isResized, index, query, column }) => {
     const initialWidth = widgetRef?.current?.clientWidth || width;
     const initialHeight = widgetRef?.current?.clientHeight || height;
     const [chartWidth, setChartWidth] = useState<number>(initialWidth);
     const [chartHeight, setChartHeight] = useState<number>(initialHeight);
     const queryClient = useQueryClient();
     const [recentData, setRecentData] = useState<DataRow[]>([]);
-    const [columns, setColumns] = useState<any[]>([]); // 컬럼 상태 추가
+    const [columns, setColumns] = useState<any[]>([]);
+
+    const gte = query.QueryDsl.bool.must.find((item: any) => item.range && item.range["@timestamp"])?.range["@timestamp"].gte;
+    const lte = query.QueryDsl.bool.must.find((item: any) => item.range && item.range["@timestamp"])?.range["@timestamp"].lte;
 
     const SearchParams = {
         index: query.index,
         QueryDsl: query.QueryDsl,
-        aggregationQuery: query.aggregationQuery
+        aggregationQuery: {
+            "host_activity_over_time": {
+                "date_histogram": {
+                    "field": "@timestamp",
+                    "interval": "day",
+                    "format": "yyyy-MM-dd HH:mm:ss",
+                    "min_doc_count": 0,
+                    "extended_bounds": {
+                        "min": gte,
+                        "max": lte
+                    }
+                }
+            }
+        },
     };
-    //console.log('query data11:', query);
 
-    // 고유한 쿼리 키를 생성하기 위해 index와 query를 포함
-    const queryKey = ['getDataByQueryDSL', query.index, query.formattedQuery, query.aggregationQuery];
+    const queryKey = ['getDataByQueryDSL', query.index, JSON.stringify(query.QueryDsl), JSON.stringify(query.aggregationQuery)];
 
     const { data, isLoading, refetch } = useQuery(queryKey, () => getDataByQueryDSL(SearchParams), {
-        refetchOnWindowFocus: false,
-        enabled: !!query // 쿼리가 존재할 때만 실행되도록 설정
+        staleTime: 0,
+        cacheTime: 10 * 60 * 1000,
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
     });
 
-    useEffect(() => {
-        if (data) {
-            console.log('query data:', data);
-        }
+ 
 
+    useEffect(() => {
         if (data?.data) {
             const readdata = data.data;
             const transformedData = readdata.data.map((hit: any) => ({
@@ -56,7 +72,6 @@ const QueryDslDataTable: React.FC<WidgetChartProps> = ({ width = 100, height = 1
             }));
             setRecentData(transformedData);
 
-            // 컬럼을 동적으로 생성하여 상태로 설정
             if (transformedData.length > 0 && !column) {
                 const newColumns = Object.keys(transformedData[0]).map(key => ({
                     Header: key,
@@ -64,16 +79,14 @@ const QueryDslDataTable: React.FC<WidgetChartProps> = ({ width = 100, height = 1
                     Cell: ({ value }) => (typeof value === 'object' ? JSON.stringify(value) : value)
                 }));
                 setColumns(newColumns);
-                console.log('newColumns',newColumns,column)
-            }
-            else if(column) {
+            } else if (column) {
                 setColumns(column);
             }
         } else {
             setRecentData([]);
             setColumns([]);
         }
-    }, [data]);
+    }, [data, column]);
 
     useEffect(() => {
         const updatedWidth = widgetRef?.current?.clientWidth;
@@ -82,28 +95,35 @@ const QueryDslDataTable: React.FC<WidgetChartProps> = ({ width = 100, height = 1
         if (updatedHeight) setChartHeight(updatedHeight);
     }, [widgetRef, isResized]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refetch();
+        }, 30000);
+
+        return () => clearInterval(interval);
+    }, [refetch]);
+
     const dummyData: DataRow[] = [
-        { id: 1, column1: 'Row 1 Data 1', column2: 'Row 1 Data 2' },
-        { id: 2, column1: 'Row 2 Data 1', column2: 'Row 2 Data 2' },
-        { id: 3, column1: 'Row 3 Data 1', column2: 'Row 3 Data 2' },
-        { id: 4, column1: 'Row 2 Data 1', column2: 'Row 2 Data 2' },
-        { id: 5, column1: 'Row 3 Data 1', column2: 'Row 3 Data 2' },
+       
     ];
     const dummyColumns = [
-        { Header: 'ID', accessor: 'id' },
-        { Header: 'Column 1', accessor: 'column1' },
-        { Header: 'Column 2', accessor: 'column2' },
+     
     ];
 
     const tableData = recentData.length > 0 ? recentData : dummyData;
     const tableColumns = columns.length > 0 ? columns : dummyColumns;
 
     return (
-        <TableContainer>
+        <TableContainer style={{ display: 'flex', flexDirection: 'column' }}>
             {isLoading ? (
                 <div>Loading...</div>
             ) : (
-                <ReactTable columns={tableColumns} data={tableData} height={chartHeight} width={chartWidth} />
+                <>
+                    <h2>Event Information</h2>
+                    <ReactTable columns={tableColumns} data={tableData} height="40vh" width={chartWidth} />
+                    {/* <LineChart query={AlertParams} width={chartWidth} height="40vh" colorScale="blue" /> */}
+                    {/* <AnomalyLineChart data={ajaxdata?.data} width={chartWidth} height="40vh"  /> */}
+                </>
             )}
         </TableContainer>
     );

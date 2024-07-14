@@ -33,7 +33,7 @@ const Navbar: React.FC<{
 
     const convertAndValidateGridLayoutItem = (item: any): GridLayout | null => {
         const { i, x, y, w, h , ChartInfo } = item;
-    
+        
         // Convert to numbers and validate
         const convertedX = Number(x);
         const convertedY = Number(y);
@@ -41,7 +41,7 @@ const Navbar: React.FC<{
         const convertedH = Number(h);
     
         if (!isNaN(convertedX) && !isNaN(convertedY) && !isNaN(convertedW) && !isNaN(convertedH)) {
-            return { i, x: convertedX, y: convertedY, w: convertedW, h: convertedH ,ChartInfo:ChartInfo};
+            return { i, x: convertedX, y: convertedY, w: convertedW, h: convertedH ,ChartInfo:ChartInfo,static:"true"};
         }
         return null; 
     };
@@ -100,7 +100,7 @@ const Navbar: React.FC<{
             </div>
             {savedData && Object.values(savedData).map((data, index) => {
                 // Console log to check the data
-                console.log("Data at index", index, ":", data);
+               // console.log("Data at index", index, ":", data);
                 if(!data.selectedIconName)data.selectedIconName = "home";
                 return (
                     <Styled.NavbarItem key={data.id} onClick={() => handleItemClickWithGridLayout(data)}>

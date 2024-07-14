@@ -191,9 +191,9 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ layouts, setGridLayout, openInf
             <Styled.Widget
                 ref={widgetRef}
                 style={{ zIndex: selectedWidgetKey === itemKey ? 1000 : 1 }}
-                onClick={() => handleWidgetClick(itemKey)}
+                // onClick={() => handleWidgetClick(itemKey)}
             >
-                <HeaderRow title={title} onInfoClick={handleInfoBarClick} showTitle={showTitle} />
+                {/* <HeaderRow title={title} onInfoClick={handleInfoBarClick} showTitle={showTitle} /> */}
                 <div style={{ width: '100%', height: showTitle ? 'calc(100% - 40px)' : '100%' }}>
                     {(() => {
                         switch (QuerryInfo.type) {
@@ -308,7 +308,7 @@ const WidgetGrid: React.FC<WidgetGridProps> = ({ layouts, setGridLayout, openInf
                 allowOverlap={true}  // 위젯 겹치기 허용
             >
                 {(currentLayouts.lg || []).map((item) => (
-                    <div key={item.i} id={item.i} onClick={() => handleWidgetClick(item.i)}>
+                    <div key={item.i} id={item.i}>
                         {renderWidget(item.i, item.ChartInfo)}
                     </div>
                 ))}

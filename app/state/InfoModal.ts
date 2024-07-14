@@ -6,5 +6,6 @@ export const infoBarState = atom({
     default: {
         isOpen: false,
         content: null,
+        contentBottom: null,
     },
 });

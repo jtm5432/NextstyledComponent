@@ -1,26 +1,43 @@
-// components/InfoBar.tsx
 import React, { useEffect, useRef } from 'react';
 import { useRecoilState } from 'recoil';
 import { infoBarState } from '../../../app/state/InfoModal';
 import styled from 'styled-components';
 
-
 const InfoBarContainer = styled.div<{ isOpen: boolean }>`
   position: fixed;
   right: 0;
-  top: 0;
-  height: 100%;
-  width: 300px;
+  bottom: 0;
+  height: calc(100% );
+  width: 500px;
   background-color: rgba(0, 0, 0, 0.5); // Black with higher transparency
   color: white; // Ensuring text is visible on black background
-  box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+  box-shadow: -2px 0 5px rgba(0,0,0,0.3), 0 -2px 5px rgba(0,0,0,0.3);
   z-index: 1000;
   overflow-y: auto;
   transition: transform 0.3s ease-in-out;
-  transform: ${props => props.isOpen ? 'translateX(0)' : 'translateX(110%)'};
+  transform: ${props => props.isOpen ? 'translate(0)' : 'translate(110%, 110%)'};
+`;
+
+const BottomBarContainer = styled.div`
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: calc(100% - 500px);
+  height: 300px;
+  background-color: rgba(0, 0, 0, 0.5); // Black with higher transparency
+  color: white; // Ensuring text is visible on black background
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+  z-index: 1000;
+  overflow-y: auto;
+  transition: transform 0.3s ease-in-out;
+  transform: ${props => props.isOpen ? 'translate(0)' : 'translateY(110%)'};
 `;
 
 const InfoBarContent = styled.div`
+  padding: 20px;
+`;
+
+const BottomBarContent = styled.div`
   padding: 20px;
 `;
 
@@ -46,17 +63,18 @@ const Overlay = styled.div<{ isOpen: boolean }>`
   z-index: 999;
 `;
 
-
 const InfoBar: React.FC = () => {
   const [infoBar, setInfoBar] = useRecoilState(infoBarState);
   const infoBarRef = useRef<HTMLDivElement>(null);
-  console.log('infoBar',infoBar);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
+
   const closeInfoBar = () => {
     setInfoBar({ ...infoBar, isOpen: false });
   };
 
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    if (infoBarRef.current && !infoBarRef.current.contains(event.target as Node)) {
+    if ((infoBarRef.current && !infoBarRef.current.contains(event.target as Node)) &&
+        (bottomBarRef.current && !bottomBarRef.current.contains(event.target as Node))) {
       closeInfoBar();
     }
   };
@@ -70,6 +88,11 @@ const InfoBar: React.FC = () => {
           {infoBar.content}
         </InfoBarContent>
       </InfoBarContainer>
+      {/* <BottomBarContainer isOpen={infoBar.isOpen} ref={bottomBarRef}>
+        <BottomBarContent>
+          {infoBar.contentBottom}
+        </BottomBarContent>
+      </BottomBarContainer> */}
     </>
   );
 };

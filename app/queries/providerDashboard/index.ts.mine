@@ -225,34 +225,7 @@ const getDataByQueryDSL = async (searchParams) => {
 
     return response; // 저장된 데이터 반환
 };
-const AjaxCall = async () => {
-    const endpoint = "https://localhost:8081/reportdata";
-    const params = {
-        operator: "getAnomalyChartDashboard",
-        "csrfToken": "",
-        "zhost": "Cisco IOS by Simulator",
-        "dataFormat": "percent",
-        "model": "NMS_MEM",
-        "from": 1720059616000,
-        "to": 1720146016000,
-        "q": "zhost.keyword: (\"Cisco IOS by Simulator\")  AND zapptype.keyword: (\"NMS_MEM\" OR \"NMS_ERRORS(IN)\" OR \"NMS_PPS(IN)\" OR \"NMS_BPS(IN)\")",
-        "qFilter": [
-          { "range": { "@timestamp": { "gte": 1720059616000, "lte": 1720146016000 } } },
-          { "terms": { "zhost.keyword": [ "Cisco IOS by Simulator" ] } },
-          {
-            "terms": { "zapptype.keyword": [ "NMS_MEM", "NMS_ERRORS(IN)", "NMS_PPS(IN)", "NMS_BPS(IN)" ] }
-          }
-        ],
-        "clientTime": 1720146016216,
-     
-        "clientip": "192.168.50.241",
-        cid: "c00000"
-    };
 
-    const response = await axios.post('/api/axios', { endpoint, params });
-    return response; // 저장된 데이터 반환
-
-}
 const SearchByQueryDSL = async (searchParams) => {
     searchParams = JSON.stringify(searchParams);
     console.log('searchParams', searchParams);
@@ -318,5 +291,4 @@ export {
     getIndexlist,
     saveDataToLocalStorage,
     getDataByQueryDSL,
-    AjaxCall,
 };

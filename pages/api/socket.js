@@ -9,7 +9,7 @@ export const config = {
 };
 
 const proxy = createProxyMiddleware({
-  target: 'https://192.168.10.224', // 여기에 타겟 서버 주소를 입력합니다.
+  target: 'https://192.168.10.222', // 여기에 타겟 서버 주소를 입력합니다.
   changeOrigin: true,
   ws: true, // WebSocket을 위한 설정입니다.
   pathRewrite: {

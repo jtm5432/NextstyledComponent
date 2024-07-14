@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 
 console.log('Starting connection...');
-const socket = io('https://192.168.10.222', {
+const socket = io('https://192.168.10.222:4000', {
   //path: '/myAppSocket/socket.io'
 });
 

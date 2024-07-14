@@ -8,7 +8,7 @@ type FetchParams = {
 };
 
 const fetchReportData = async ({ operator, sql, dataCount }: FetchParams) => {
-  const baseURL = 'https://192.168.10.224/reportdata/';
+  const baseURL = 'https://192.168.10.222/reportdata/';
   const response = await axios.get(baseURL, {
     params: {
       operator,
